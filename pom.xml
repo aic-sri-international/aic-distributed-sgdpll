@@ -66,6 +66,7 @@
 	<properties>
 		<target.jdk.version>1.8</target.jdk.version>
 		<targetJdk>1.8</targetJdk>
+		<aic.praise.version>1.2.0-SNAPSHOT</aic.praise.version>
 		<apache.spark.version>1.4.0</apache.spark.version>
 		<junit.version>4.11</junit.version>
 	</properties>
@@ -73,7 +74,13 @@
 	<dependencies>
 		<!-- Internal Dependencies -->
 		<!-- Compile Dependencies -->
-		<dependency> <!-- Spark dependency -->
+		<dependency>
+			<groupId>com.googlecode.aic-praise</groupId>
+			<artifactId>aic-praise</artifactId>
+			<version>${aic.praise.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
 			<version>1.4.0</version>
