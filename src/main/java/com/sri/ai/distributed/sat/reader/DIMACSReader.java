@@ -37,7 +37,7 @@
  */
 package com.sri.ai.distributed.sat.reader;
 
-import org.apache.spark.api.java.JavaRDD;
+import com.sri.ai.distributed.sat.CNFProblem;
 
 /**
  * Full DIMACS format description can be found here:<br>
@@ -47,11 +47,5 @@ import org.apache.spark.api.java.JavaRDD;
  *
  */
 public interface DIMACSReader {
-	interface CNFProblem {
-		long getNumberVariables();
-		long getNumberClauses();
-		JavaRDD<int[]> getClauses();
-	}
-	
 	CNFProblem read(String cnfFileName);
 }

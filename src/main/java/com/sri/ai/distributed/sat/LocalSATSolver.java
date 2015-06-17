@@ -35,68 +35,61 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.sri.ai.distributed.experiment;
+package com.sri.ai.distributed.sat;
 
-import java.util.StringJoiner;
+import java.util.Iterator;
 
-import com.google.common.base.Stopwatch;
+import org.sat4j.core.VecInt;
+import org.sat4j.minisat.SolverFactory;
+import org.sat4j.specs.ContradictionException;
+import org.sat4j.specs.ISolver;
+
 import com.sri.ai.distributed.sat.CNFProblem;
-import com.sri.ai.distributed.sat.DistributedSATSolver;
-import com.sri.ai.distributed.sat.LocalSATSolver;
-import com.sri.ai.distributed.sat.SATSolver;
-import com.sri.ai.distributed.sat.reader.DIMACSReader;
-import com.sri.ai.distributed.sat.reader.SimplifiedDIMACSReader;
 
 /**
  * 
  * @author oreilly
  *
  */
-public class SimpleExperiment {
+public class LocalSATSolver implements SATSolver {
 	
-	private static final boolean USE_DISTRIBUTED_SOLVER = true;
-
-	public static void main(String[] args) {
-		String       cnfFileName  = args[0];
-		DIMACSReader dimacsReader = new SimplifiedDIMACSReader(); 
-		
-		CNFProblem cnfProblem = dimacsReader.read(cnfFileName);
-		
-		cnfProblem.getClauses().cache();
-		
-		System.out.println("# variables        = "+cnfProblem.getNumberVariables());
-		System.out.println("# clauses reported = "+cnfProblem.getNumberClauses()+", number clauses loaded = "+cnfProblem.getClauses().count());	
-		
-		Stopwatch sw = new Stopwatch();
-		
-		sw.start();
-		SATSolver solver = newSolver();
-		int[]     model  = solver.findModel(cnfProblem);
-		sw.stop();
-		
-		System.out.println("Took "+sw);
-		
-		if (model == null) {
-			System.out.println("Problem is NOT satisfiable");
-		}
-		else {
-			StringJoiner sj = new StringJoiner(", ");
-			for (int i = 0; i < model.length; i++) {
-				sj.add(""+model[i]);
-			}
-			
-			System.out.println("Problem is satisfiable, example model found:"+sj);
-		}
+	@Override
+	public int[] findModel(CNFProblem cnfProblem) {
+		return findModel(cnfProblem, null);
 	}
 	
-	private static SATSolver newSolver() {
-		SATSolver result = null;
-		if (USE_DISTRIBUTED_SOLVER) {
-			result = new DistributedSATSolver();
+	@Override
+	public int[] findModel(CNFProblem cnfProblem, int[] assumptions) {
+		int[] result = null;
+		
+		ISolver sat4jSolver = SolverFactory.newDefault();	
+		
+		sat4jSolver.newVar((int)cnfProblem.getNumberVariables());
+		
+		Iterator<int[]> clauseIt = cnfProblem.getClauses().toLocalIterator();
+		while (clauseIt.hasNext()) {
+			int[] clause = clauseIt.next();
+			try {	
+				VecInt vClause = new VecInt(clause);				
+				sat4jSolver.addClause(vClause);
+			} catch (ContradictionException cex) {
+				return null; // no model
+			}
 		}
-		else {
-			result = new LocalSATSolver();
+		try {
+			if (assumptions != null && assumptions.length > 0) {
+				result = sat4jSolver.findModel(new VecInt(assumptions));
+			}
+			else {
+				result = sat4jSolver.findModel();
+			}
 		}
+		catch (Throwable t) {
+			t.printStackTrace();
+		}
+		
+			
 		return result;
 	}
+
 }

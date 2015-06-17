@@ -35,68 +35,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.sri.ai.distributed.experiment;
+package com.sri.ai.distributed.sat;
 
-import java.util.StringJoiner;
-
-import com.google.common.base.Stopwatch;
-import com.sri.ai.distributed.sat.CNFProblem;
-import com.sri.ai.distributed.sat.DistributedSATSolver;
-import com.sri.ai.distributed.sat.LocalSATSolver;
-import com.sri.ai.distributed.sat.SATSolver;
-import com.sri.ai.distributed.sat.reader.DIMACSReader;
-import com.sri.ai.distributed.sat.reader.SimplifiedDIMACSReader;
 
 /**
  * 
  * @author oreilly
  *
  */
-public class SimpleExperiment {
+public interface SATSolver {
+	/**
+	 * Find a satisfiable model.
+	 * 
+	 * @param cnfProblem
+	 *        the problem a model is to be found for.
+	 * @return a model or null if no model can be found (i.e. is not satisfiable).
+	 */
+	int[] findModel(CNFProblem cnfProblem);
 	
-	private static final boolean USE_DISTRIBUTED_SOLVER = true;
-
-	public static void main(String[] args) {
-		String       cnfFileName  = args[0];
-		DIMACSReader dimacsReader = new SimplifiedDIMACSReader(); 
-		
-		CNFProblem cnfProblem = dimacsReader.read(cnfFileName);
-		
-		cnfProblem.getClauses().cache();
-		
-		System.out.println("# variables        = "+cnfProblem.getNumberVariables());
-		System.out.println("# clauses reported = "+cnfProblem.getNumberClauses()+", number clauses loaded = "+cnfProblem.getClauses().count());	
-		
-		Stopwatch sw = new Stopwatch();
-		
-		sw.start();
-		SATSolver solver = newSolver();
-		int[]     model  = solver.findModel(cnfProblem);
-		sw.stop();
-		
-		System.out.println("Took "+sw);
-		
-		if (model == null) {
-			System.out.println("Problem is NOT satisfiable");
-		}
-		else {
-			StringJoiner sj = new StringJoiner(", ");
-			for (int i = 0; i < model.length; i++) {
-				sj.add(""+model[i]);
-			}
-			
-			System.out.println("Problem is satisfiable, example model found:"+sj);
-		}
-	}
-	
-	private static SATSolver newSolver() {
-		SATSolver result = null;
-		if (USE_DISTRIBUTED_SOLVER) {
-			result = new DistributedSATSolver();
-		}
-		else {
-			result = new LocalSATSolver();
-		}
-		return result;
-	}
+	/**
+	 * Find a satisfiable model based on the given assumptions.
+	 * 
+	 * @param cnfProblem
+	 *        the problem a model is to be found for.
+	 * @param assumptions
+	 *        a given set of assumptions.
+	 * @return a model or null if no model can be found under the given assumptions (i.e. is not satisfiable).
+	 */
+	int[] findModel(CNFProblem cnfProblem, int[] assumptions);
 }

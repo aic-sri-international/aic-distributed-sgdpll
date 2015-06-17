@@ -35,67 +35,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.sri.ai.distributed.experiment;
+package com.sri.ai.distributed.sat.iterable;
 
-import java.util.StringJoiner;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
-import com.google.common.base.Stopwatch;
-import com.sri.ai.distributed.sat.CNFProblem;
-import com.sri.ai.distributed.sat.DistributedSATSolver;
-import com.sri.ai.distributed.sat.LocalSATSolver;
-import com.sri.ai.distributed.sat.SATSolver;
-import com.sri.ai.distributed.sat.reader.DIMACSReader;
-import com.sri.ai.distributed.sat.reader.SimplifiedDIMACSReader;
+import com.sri.ai.util.collect.CartesianProductEnumeration;
 
 /**
  * 
  * @author oreilly
  *
  */
-public class SimpleExperiment {
+public class IteratorAssumptions implements Iterator<int[]>, Serializable {
+	private static final long serialVersionUID = 1L;
+	//
+	private int numberAssumptions;
+	private CartesianProductEnumeration<Integer> cartesianProduct;
 	
-	private static final boolean USE_DISTRIBUTED_SOLVER = true;
-
-	public static void main(String[] args) {
-		String       cnfFileName  = args[0];
-		DIMACSReader dimacsReader = new SimplifiedDIMACSReader(); 
+	public IteratorAssumptions(int numberAssumptions) {
+		this.numberAssumptions = numberAssumptions;
 		
-		CNFProblem cnfProblem = dimacsReader.read(cnfFileName);
-		
-		cnfProblem.getClauses().cache();
-		
-		System.out.println("# variables        = "+cnfProblem.getNumberVariables());
-		System.out.println("# clauses reported = "+cnfProblem.getNumberClauses()+", number clauses loaded = "+cnfProblem.getClauses().count());	
-		
-		Stopwatch sw = new Stopwatch();
-		
-		sw.start();
-		SATSolver solver = newSolver();
-		int[]     model  = solver.findModel(cnfProblem);
-		sw.stop();
-		
-		System.out.println("Took "+sw);
-		
-		if (model == null) {
-			System.out.println("Problem is NOT satisfiable");
+		List<List<Integer>> literalValues = new ArrayList<>();
+		for (int i = 1; i <= numberAssumptions; i++) {
+			literalValues.add(Arrays.asList(i, -i));
 		}
-		else {
-			StringJoiner sj = new StringJoiner(", ");
-			for (int i = 0; i < model.length; i++) {
-				sj.add(""+model[i]);
-			}
-			
-			System.out.println("Problem is satisfiable, example model found:"+sj);
-		}
+		
+		cartesianProduct = new CartesianProductEnumeration<>(literalValues);
 	}
 	
-	private static SATSolver newSolver() {
-		SATSolver result = null;
-		if (USE_DISTRIBUTED_SOLVER) {
-			result = new DistributedSATSolver();
-		}
-		else {
-			result = new LocalSATSolver();
+	public boolean hasNext() {
+		return cartesianProduct.hasMoreElements();
+	}
+	
+	public int[] next() {
+		int[] result = new int[numberAssumptions];
+		List<Integer> values = cartesianProduct.nextElement();
+		for (int i = 0; i < numberAssumptions; i++) {
+			result[i] = values.get(i);
 		}
 		return result;
 	}

@@ -42,6 +42,7 @@ import java.util.function.Function;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import com.sri.ai.distributed.sat.CNFProblem;
 import com.sri.ai.distributed.util.RunInSparkContext;
 
 /**
@@ -99,11 +100,7 @@ public class SimplifiedDIMACSReader implements DIMACSReader {
 							return clause;
 						});
 		    	
-		    	return new CNFProblem() {
-		    		public long getNumberVariables() { return numVariables; }
-		    		public long getNumberClauses() { return numClauses; }
-		    		public JavaRDD<int[]> getClauses() { return clauses; }
-		    	};
+		    	return new CNFProblem(numVariables, numClauses, clauses);
 			}
 		});
 		
