@@ -37,9 +37,16 @@
  */
 package com.sri.ai.distributed.sat.reader;
 
+import java.util.Iterator;
+import java.util.StringJoiner;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.sat4j.core.VecInt;
+import org.sat4j.minisat.SolverFactory;
+import org.sat4j.specs.ContradictionException;
+import org.sat4j.specs.ISolver;
 
 /**
  * Based on simplified version of DIMACS format described at:<br>
@@ -65,9 +72,9 @@ public class SimplifiedDIMACSReader {
 	    	// e.g.
 	    	// p cnf 5 3
 	    	// has 5 varialbes and 3 clauses
-	    	String[] pInfo = cnfData.filter(line -> line.trim().startsWith("p")).toLocalIterator().next().split("\\s+");
-	    	long numVariables = Long.parseLong(pInfo[2]);
-	    	long numClauses   = Long.parseLong(pInfo[3]);
+	    	String[] problemInfo = cnfData.filter(line -> line.trim().startsWith("p")).toLocalIterator().next().split("\\s+");
+	    	long numVariables = Long.parseLong(problemInfo[2]);
+	    	long numClauses   = Long.parseLong(problemInfo[3]);
 	    	
 	    	JavaRDD<int[]> clauses = cnfData
 	    			.filter(line -> {
@@ -99,8 +106,45 @@ public class SimplifiedDIMACSReader {
 						return clause;
 					});
 	    	
+	    	
 	    	System.out.println("# variables        = "+numVariables);
-	    	System.out.println("# clauses reported = "+numClauses+", number clauses loaded = "+clauses.count());	    	
+	    	System.out.println("# clauses reported = "+numClauses+", number clauses loaded = "+clauses.count());	
+	    	
+	    	ISolver sat4jSolver = SolverFactory.newDefault();
+	    	
+	    	sat4jSolver.newVar((int)numVariables);
+	    	
+	    	Iterator<int[]> clauseIt = clauses.toLocalIterator();
+	    	Boolean result = null;
+	    	while (clauseIt.hasNext()) {
+	    		int[] clause = clauseIt.next();
+	    		try {	
+					VecInt vClause = new VecInt(clause);				
+					sat4jSolver.addClause(vClause);
+				} catch (ContradictionException cex) {
+					result = Boolean.FALSE;
+					break;
+				}
+	    	}
+	    	if (result == null) {
+	    		try {
+	    			result = sat4jSolver.isSatisfiable();
+	    			if (result) {
+	    				int[] model = sat4jSolver.model();
+	    				StringJoiner sj = new StringJoiner(", ");
+	    				for (int i = 0; i < model.length; i++) {
+	    					sj.add(""+model[i]);
+	    				}
+	    				System.out.println("model = "+sj);
+	    				System.out.println("1 isSatisfiable="+sat4jSolver.isSatisfiable(new VecInt(new int[] {1,2})));
+	    			}
+	    		}
+	    		catch (Throwable t) {
+	    			t.printStackTrace();
+	    		}
+	    	}
+	    	
+	    	System.out.println("isSatisfiable="+result);
 		}
 	}
 }
