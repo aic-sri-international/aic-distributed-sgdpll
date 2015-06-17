@@ -37,16 +37,12 @@
  */
 package com.sri.ai.distributed.sat.reader;
 
-import java.util.Iterator;
-import java.util.StringJoiner;
+import java.util.function.Function;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.sat4j.core.VecInt;
-import org.sat4j.minisat.SolverFactory;
-import org.sat4j.specs.ContradictionException;
-import org.sat4j.specs.ISolver;
+
+import com.sri.ai.distributed.util.RunInSparkContext;
 
 /**
  * Based on simplified version of DIMACS format described at:<br>
@@ -57,94 +53,60 @@ import org.sat4j.specs.ISolver;
  * @author oreilly
  *
  */
-public class SimplifiedDIMACSReader {
+public class SimplifiedDIMACSReader implements DIMACSReader {
 
-	
-	public static void main(String[] args) {
-		String    cnfFile = args[0];
-		SparkConf conf    = new SparkConf().setAppName("Simplified DIMACS Reader").setMaster("local");
+	@Override
+	public CNFProblem read(final String cnfFileName) {
+		CNFProblem result = RunInSparkContext.run(new Function<JavaSparkContext, CNFProblem>() {
+			public CNFProblem apply(JavaSparkContext sparkContext) {
+				JavaRDD<String> cnfData = sparkContext.textFile(cnfFileName);
+			
+				// Get the #variables and #clauses information from the problem definition line
+		    	// e.g.
+		    	// p cnf 5 3
+		    	// has 5 varialbes and 3 clauses
+		    	String[] problemInfo = cnfData.filter(line -> line.trim().startsWith("p")).toLocalIterator().next().split("\\s+");
+		    	final long numVariables = Long.parseLong(problemInfo[2]);
+		    	final long numClauses   = Long.parseLong(problemInfo[3]);
+		    	
+		    	final JavaRDD<int[]> clauses = cnfData
+		    			.filter(line -> {
+		    				String tline = line.trim();
+		    				// skip empty lines, comments, problem definitions, SATLIB % and 0 lines
+		    				return tline.length() > 0 && !tline.startsWith("c") && !tline.startsWith("p") && !tline.startsWith("%") && !tline.equals("0");
+		    			})
+						.map(line -> {
+							// Each clause is a sequence of distinct non-null numbers between -nbvar and nbvar ending with 0 on the same line; 
+							// it cannot contain the opposite literals i and -i simultaneously. 
+							// Positive numbers denote the corresponding variables. 
+							// Negative numbers denote the negations of the corresponding variables. 
+							String[] literals = line.trim().split("\\s+");
+	                        int[]    clause   = null;
+	                        int      last     = Integer.parseInt(literals[literals.length-1]);
+	                        if (last == 0) {
+	                        	// line ends with a 0
+	                        	clause = new int[literals.length-1];
+	                        }
+	                        else {
+	                        	// line does not end with a zero
+	                        	clause = new int[literals.length];
+	                        }
+	                        
+	                        for (int i = 0; i < clause.length; i++) {
+	                        	clause[i] = Integer.parseInt(literals[i]);
+	                        }
+													
+							return clause;
+						});
+		    	
+		    	return new CNFProblem() {
+		    		public long getNumberVariables() { return numVariables; }
+		    		public long getNumberClauses() { return numClauses; }
+		    		public JavaRDD<int[]> getClauses() { return clauses; }
+		    	};
+			}
+		});
 		
-		try (JavaSparkContext sc = new JavaSparkContext(conf)) {
-	    		    
-	    	JavaRDD<String> cnfData = sc.textFile(cnfFile);
-	    
-	    	// Get the #variables and #clauses information from the problem definition line
-	    	// e.g.
-	    	// p cnf 5 3
-	    	// has 5 varialbes and 3 clauses
-	    	String[] problemInfo = cnfData.filter(line -> line.trim().startsWith("p")).toLocalIterator().next().split("\\s+");
-	    	long numVariables = Long.parseLong(problemInfo[2]);
-	    	long numClauses   = Long.parseLong(problemInfo[3]);
-	    	
-	    	JavaRDD<int[]> clauses = cnfData
-	    			.filter(line -> {
-	    				String tline = line.trim();
-	    				// skip empty lines, comments, problem definitions, SATLIB % and 0 lines
-	    				return tline.length() > 0 && !tline.startsWith("c") && !tline.startsWith("p") && !tline.startsWith("%") && !tline.equals("0");
-	    			})
-					.map(line -> {
-						// Each clause is a sequence of distinct non-null numbers between -nbvar and nbvar ending with 0 on the same line; 
-						// it cannot contain the opposite literals i and -i simultaneously. 
-						// Positive numbers denote the corresponding variables. 
-						// Negative numbers denote the negations of the corresponding variables. 
-						String[] literals = line.trim().split("\\s+");
-                        int[]    clause = null;
-                        int      last   = Integer.parseInt(literals[literals.length-1]);
-                        if (last == 0) {
-                        	// line ends with a 0
-                        	clause = new int[literals.length-1];
-                        }
-                        else {
-                        	// line does not end with a zero
-                        	clause = new int[literals.length];
-                        }
-                        
-                        for (int i = 0; i < clause.length; i++) {
-                        	clause[i] = Integer.parseInt(literals[i]);
-                        }
-												
-						return clause;
-					});
-	    	
-	    	
-	    	System.out.println("# variables        = "+numVariables);
-	    	System.out.println("# clauses reported = "+numClauses+", number clauses loaded = "+clauses.count());	
-	    	
-	    	ISolver sat4jSolver = SolverFactory.newDefault();
-	    	
-	    	sat4jSolver.newVar((int)numVariables);
-	    	
-	    	Iterator<int[]> clauseIt = clauses.toLocalIterator();
-	    	Boolean result = null;
-	    	while (clauseIt.hasNext()) {
-	    		int[] clause = clauseIt.next();
-	    		try {	
-					VecInt vClause = new VecInt(clause);				
-					sat4jSolver.addClause(vClause);
-				} catch (ContradictionException cex) {
-					result = Boolean.FALSE;
-					break;
-				}
-	    	}
-	    	if (result == null) {
-	    		try {
-	    			result = sat4jSolver.isSatisfiable();
-	    			if (result) {
-	    				int[] model = sat4jSolver.model();
-	    				StringJoiner sj = new StringJoiner(", ");
-	    				for (int i = 0; i < model.length; i++) {
-	    					sj.add(""+model[i]);
-	    				}
-	    				System.out.println("model = "+sj);
-	    				System.out.println("1 isSatisfiable="+sat4jSolver.isSatisfiable(new VecInt(new int[] {1,2})));
-	    			}
-	    		}
-	    		catch (Throwable t) {
-	    			t.printStackTrace();
-	    		}
-	    	}
-	    	
-	    	System.out.println("isSatisfiable="+result);
-		}
+		return result;
 	}
 }
