@@ -48,7 +48,7 @@ import java.util.Iterator;
 public class IterableAssumptions implements Iterable<int[]>, Serializable {
 	private static final long serialVersionUID = 1L;
 	//
-	private int variablesToAssign = 16;
+	private int variablesToAssign;
 	
 	public IterableAssumptions(int variablesToAssign) {
 		this.variablesToAssign = variablesToAssign;

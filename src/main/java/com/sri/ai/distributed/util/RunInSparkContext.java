@@ -58,7 +58,7 @@ public class RunInSparkContext {
 	private synchronized static void initialize() {
 		if (sparkContext == null) {
 // TODO - get these values from a Configuration Object			
-			SparkConf sparkConf = new SparkConf().setAppName("RunInSparkContext").setMaster("local");
+			SparkConf sparkConf = new SparkConf().setAppName("RunInSparkContext").setMaster("local[8]");
 			sparkContext = new JavaSparkContext(sparkConf);
 			
 			Runtime.getRuntime().addShutdownHook(new Thread() {

@@ -71,7 +71,7 @@ public class IteratorAssumptions implements Iterator<int[]>, Serializable {
 		return cartesianProduct.hasMoreElements();
 	}
 	
-	public int[] next() {
+	public int[] next() {	
 		int[] result = new int[numberAssumptions];
 		List<Integer> values = cartesianProduct.nextElement();
 		for (int i = 0; i < numberAssumptions; i++) {

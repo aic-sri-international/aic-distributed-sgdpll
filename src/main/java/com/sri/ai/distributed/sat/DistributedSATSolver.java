@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import org.apache.spark.api.java.JavaRDD;
@@ -63,7 +64,7 @@ import com.sri.ai.distributed.util.RunInSparkContext;
 public class DistributedSATSolver implements SATSolver, Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	public static final int NUMBER_VARIABLE_TO_PRE_ASSIGN = 16;
+	public static final int NUMBER_VARIABLE_TO_PRE_ASSIGN = 8;
 	
 	@Override
 	public int[] findModel(CNFProblem cnfProblem) {
@@ -72,9 +73,7 @@ public class DistributedSATSolver implements SATSolver, Serializable {
 		if (cnfProblem.getNumberVariables() < NUMBER_VARIABLE_TO_PRE_ASSIGN+4) {
 			result = new LocalSATSolver().findModel(cnfProblem);
 		} 
-		else {	
-			
-			
+		else {			
 			result = RunInSparkContext.run(new Function<JavaSparkContext, int[]>() {
 				public int[] apply(JavaSparkContext sparkContext) {
 					int[] model = null;
@@ -96,19 +95,28 @@ public class DistributedSATSolver implements SATSolver, Serializable {
 					
 					Broadcast<int[][]> clausesBroadcastVar = sparkContext.broadcast(clauses);
 					
-					// Generate an RDD over a subset of pre-assigned variable values
-					JavaRDD<int[]> assumptions = sparkContext.parallelize(Arrays.asList(0)).flatMap(zero -> { 
-						return new IterableAssumptions(NUMBER_VARIABLE_TO_PRE_ASSIGN);
-					});
+					// TODO - this is a hack and will only work in local mode (i.e. will fail on a cluster)
+					// need a mechanism to signal to each job on the cluster that they should stop processing
+					// once a single answer is found.
+					AtomicBoolean foundModelSignal = new AtomicBoolean();
 					
+					// TODO - create array of iterators, size = sparkContext.defaultParallelism(), whereby
+					// each iterator is over a partition of the the pre-assigned assumption values.
+					JavaRDD<int[]> assumptions = sparkContext.parallelize(sparkContext.parallelize(Arrays.asList(0)).flatMap(zero -> { 
+						return new IterableAssumptions(NUMBER_VARIABLE_TO_PRE_ASSIGN);
+					}).collect());
+									
 					// Now determine if satisfiable by having each partition constrain their problem
 					// based on the given assumptions.
 					JavaRDD<int[]> models = assumptions.mapPartitions(partitionedAssumptions -> {
 						List<int[]> foundModel = new ArrayList<>();
+// TODO - remove					
+System.out.println("enter mapParitition :"+Thread.currentThread());
 						
 						int[][] localClauses = clausesBroadcastVar.getValue();
 						
 						ISolver sat4jSolver = SolverFactory.newDefault();	
+						
 						sat4jSolver.newVar(numVars);
 						for (int c = 0; c < numClauses; c++) {
 							try {	
@@ -120,11 +128,23 @@ public class DistributedSATSolver implements SATSolver, Serializable {
 							}
 						}
 						
+						int trys = 0;
 						while (partitionedAssumptions.hasNext()) {
-							int[] localAssumptions = partitionedAssumptions.next();
-							int[] localFindResult  = sat4jSolver.findModel(new VecInt(localAssumptions));
+							if (foundModelSignal.get()) {
+								break; // someone has found an answer
+							}
+							int[]  localAssumptions = partitionedAssumptions.next();
+							VecInt vecAssumptions   = new VecInt(localAssumptions);
+							int[]  localFindResult  = sat4jSolver.findModel(vecAssumptions);
+
+// TODO - remove							
+if (trys == 0) {System.out.println("mapPartition first assumptions="+vecAssumptions+", "+Thread.currentThread()); }
 							
+							trys++;
 							if (localFindResult != null) {
+								foundModelSignal.set(true);
+// TODO - remove
+System.out.println("mapParitition - found model in:"+Thread.currentThread()+", trys="+trys+", assumptions="+vecAssumptions);
 								// We are only interested in the first one we find
 								foundModel.add(localFindResult);
 								break;
@@ -133,8 +153,10 @@ public class DistributedSATSolver implements SATSolver, Serializable {
 							
 						return foundModel;
 					});
-					
-					model = models.first();
+					List<int[]> collectedModels = models.collect();
+					if (collectedModels.size() > 0) {
+						model = collectedModels.get(0);
+					}
 					
 					return model;
 				}
