@@ -67,7 +67,7 @@
 		<target.jdk.version>1.8</target.jdk.version>
 		<targetJdk>1.8</targetJdk>
 		<aic.praise.version>1.2.0-SNAPSHOT</aic.praise.version>
-		<apache.spark.version>1.4.0</apache.spark.version>
+		<apache.spark.version>1.5.0</apache.spark.version>
 		<junit.version>4.11</junit.version>
 	</properties>
 
