@@ -32,9 +32,6 @@ public class SparkSGDPLLTMapReduceExperiment extends AbstractSolver implements S
 		final GroupProblemType problemType = getProblemType();
 		final List<SubProblem> subProblems = new ArrayList<>();
 		
-		System.out.println("InputTheory:"+(inputTheory instanceof Serializable));
-		System.out.println("GroupProblemType:"+(problemType instanceof Serializable));
-		
 // TODO - what about sub-problems/sub-branches that don't meet the depth that the collector is not called?		
 		SGDPLLTParallelizer.Collector collector =
 				(e, i, c, p) -> {
@@ -78,9 +75,6 @@ class SubProblem implements Serializable {
 	public RewritingProcess       process;
 	
 	public SubProblem(Expression expression, Collection<Expression> indices, Constraint constraint, RewritingProcess process) {
-		System.out.println("Expression:"+(expression instanceof Serializable));
-		System.out.println("Constraint:"+(constraint instanceof Serializable));
-		System.out.println("RewritingProcess:"+(process instanceof Serializable));
 		this.expression = expression;
 		this.indices    = indices;
 		this.constraint = constraint;
