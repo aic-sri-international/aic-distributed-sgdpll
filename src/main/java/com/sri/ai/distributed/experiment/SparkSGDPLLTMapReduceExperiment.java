@@ -18,7 +18,7 @@ import com.sri.ai.grinder.plaindpll.core.AbstractSolver;
 import com.sri.ai.grinder.plaindpll.core.SGDPLLT;
 import com.sri.ai.grinder.plaindpll.core.SGDPLLTParallelizer;
 
-public class SparkSGDPLLTMapReduceExperiment extends AbstractSolver implements Serializable {
+public class SparkSGDPLLTMapReduceExperiment extends AbstractSolver {
 
 	public SparkSGDPLLTMapReduceExperiment(InputTheory inputTheory, GroupProblemType problemType) {
 		super(inputTheory, problemType);
