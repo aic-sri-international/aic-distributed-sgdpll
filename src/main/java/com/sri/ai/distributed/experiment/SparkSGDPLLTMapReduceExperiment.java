@@ -9,6 +9,7 @@ import org.apache.spark.api.java.JavaRDD;
 
 import com.sri.ai.distributed.util.RunInSparkContext;
 import com.sri.ai.expresso.api.Expression;
+/*
 import com.sri.ai.grinder.api.RewritingProcess;
 import com.sri.ai.grinder.plaindpll.api.Constraint;
 import com.sri.ai.grinder.plaindpll.api.GroupProblemType;
@@ -17,8 +18,10 @@ import com.sri.ai.grinder.plaindpll.api.Solver;
 import com.sri.ai.grinder.plaindpll.core.AbstractSolver;
 import com.sri.ai.grinder.plaindpll.core.SGDPLLT;
 import com.sri.ai.grinder.plaindpll.core.SGDPLLTParallelizer;
+*/
+public class SparkSGDPLLTMapReduceExperiment { 
+/* extends AbstractSolver {
 
-public class SparkSGDPLLTMapReduceExperiment extends AbstractSolver {
 
 	public SparkSGDPLLTMapReduceExperiment(InputTheory inputTheory, GroupProblemType problemType) {
 		super(inputTheory, problemType);
@@ -80,4 +83,5 @@ class SubProblem implements Serializable {
 		this.constraint = constraint;
 		this.process    = process;
 	}
+*/
 }

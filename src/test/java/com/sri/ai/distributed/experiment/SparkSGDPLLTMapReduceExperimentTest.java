@@ -1,55 +1,40 @@
 package com.sri.ai.distributed.experiment;
 
 import static com.sri.ai.expresso.helper.Expressions.apply;
-import static com.sri.ai.expresso.helper.Expressions.makeSymbol;
 import static com.sri.ai.expresso.helper.Expressions.parse;
-import static com.sri.ai.grinder.helper.GrinderUtil.getAllVariables;
-import static com.sri.ai.grinder.library.FunctorConstants.CARDINALITY;
 import static com.sri.ai.grinder.library.indexexpression.IndexExpressions.makeIndexExpression;
 import static com.sri.ai.util.Util.list;
 import static com.sri.ai.util.Util.mapIntoArrayList;
 import static com.sri.ai.util.Util.toArrayList;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.base.Function;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.expresso.api.IndexExpressionsSet;
-import com.sri.ai.expresso.api.Symbol;
 import com.sri.ai.expresso.core.DefaultIntensionalMultiSet;
 import com.sri.ai.expresso.core.ExtensionalIndexExpressionsSet;
 import com.sri.ai.expresso.helper.Expressions;
-import com.sri.ai.grinder.api.Rewriter;
-import com.sri.ai.grinder.api.RewritingProcess;
-import com.sri.ai.grinder.core.DefaultRewritingProcess;
-import com.sri.ai.grinder.core.TotalRewriter;
 import com.sri.ai.grinder.helper.GrinderUtil;
 import com.sri.ai.grinder.library.Associative;
-import com.sri.ai.grinder.library.DirectCardinalityComputationFactory;
 import com.sri.ai.grinder.library.Equality;
 import com.sri.ai.grinder.library.FunctorConstants;
-import com.sri.ai.grinder.library.PlainSubstitution;
 import com.sri.ai.grinder.library.boole.And;
 import com.sri.ai.grinder.library.boole.Or;
 import com.sri.ai.grinder.library.controlflow.IfThenElse;
-import com.sri.ai.grinder.library.controlflow.IfThenElseBranchesAreIdentical;
 import com.sri.ai.grinder.library.number.GreaterThan;
 import com.sri.ai.grinder.library.number.LessThanOrEqualTo;
 import com.sri.ai.grinder.library.number.Minus;
 import com.sri.ai.grinder.library.number.Plus;
 import com.sri.ai.grinder.library.number.Times;
-import com.sri.ai.grinder.plaindpll.problemtype.ModelCounting;
-import com.sri.ai.grinder.plaindpll.theory.DefaultInputTheory;
-import com.sri.ai.grinder.plaindpll.theory.EqualityConstraintTheory;
-import com.sri.ai.grinder.plaindpll.theory.term.SymbolTermTheory;
+import com.typesafe.config.ConfigException.Parse;
 
 public class SparkSGDPLLTMapReduceExperimentTest {
+/*	
 	protected static final Symbol DEFAULT_EVERYTHING_CARDINALITY_VALUE = makeSymbol(10);
 
 	protected static final Expression everythingType = makeSymbol("Everything");
@@ -73,7 +58,7 @@ public class SparkSGDPLLTMapReduceExperimentTest {
 			Map<Expression, Expression> providedFreeSymbolsTypes,
 			Expression expected) {
 		
-		runTest(expression, indicesStrings, providedFreeSymbolsTypes, expected, true /* no type size */);
+		runTest(expression, indicesStrings, providedFreeSymbolsTypes, expected, true );
 		
 		RewritingProcess process = DirectCardinalityComputationFactory.newCardinalityProcess();
 		
@@ -91,7 +76,7 @@ public class SparkSGDPLLTMapReduceExperimentTest {
 		RewritingProcess subProcess = extendProcessWithProvidedTypesAndTypeEverythingForUnspecifiedFreeSymbols(expected, providedFreeSymbolsTypes, process);
 		Expression expectedWithTypeSize = normalizer.rewrite(expected, subProcess);
 		
-		runTest(expression, indicesStrings, providedFreeSymbolsTypes, expectedWithTypeSize, false /* use type size */);
+		runTest(expression, indicesStrings, providedFreeSymbolsTypes, expectedWithTypeSize, false);
 	}
 
 	private RewritingProcess extendProcessWithProvidedTypesAndTypeEverythingForUnspecifiedFreeSymbols(Expression expression, Map<Expression, Expression> providedFreeSymbolsTypes, RewritingProcess process) {
@@ -301,4 +286,5 @@ public class SparkSGDPLLTMapReduceExperimentTest {
 		expected   = parse("(| Everything | - 2) * (| Everything | - 1)");
 		runSymbolicAndNonSymbolicTests(expression, indices, expected);
 	}
+*/
 }

@@ -66,8 +66,9 @@
 	<properties>
 		<target.jdk.version>1.8</target.jdk.version>
 		<targetJdk>1.8</targetJdk>
-		<aic.praise.version>1.2.0-SNAPSHOT</aic.praise.version>
-		<apache.spark.version>1.5.0</apache.spark.version>
+		<aic.praise.version>1.3.1-SNAPSHOT</aic.praise.version>
+		<apache.spark.version>1.6.2</apache.spark.version>
+		<sat4j.version>2.3.4</sat4j.version>
 		<junit.version>4.11</junit.version>
 	</properties>
 
@@ -82,8 +83,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-core_2.10</artifactId>
-			<version>1.4.0</version>
+			<artifactId>spark-core_2.11</artifactId>
+			<version>${apache.spark.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.sat4j</groupId>
+			<artifactId>org.ow2.sat4j.core</artifactId>
+			<version>${sat4j.version}</version>
 		</dependency>
 		<!-- Testing Dependencies -->
 		<dependency>
