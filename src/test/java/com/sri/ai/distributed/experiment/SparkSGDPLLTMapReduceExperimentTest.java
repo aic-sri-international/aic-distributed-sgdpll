@@ -2,7 +2,7 @@ package com.sri.ai.distributed.experiment;
 
 import static com.sri.ai.expresso.helper.Expressions.apply;
 import static com.sri.ai.expresso.helper.Expressions.parse;
-import static com.sri.ai.grinder.library.indexexpression.IndexExpressions.makeIndexExpression;
+import static com.sri.ai.grinder.sgdpllt.library.indexexpression.IndexExpressions.makeIndexExpression;
 import static com.sri.ai.util.Util.list;
 import static com.sri.ai.util.Util.mapIntoArrayList;
 import static com.sri.ai.util.Util.toArrayList;
@@ -20,17 +20,17 @@ import com.sri.ai.expresso.core.DefaultIntensionalMultiSet;
 import com.sri.ai.expresso.core.ExtensionalIndexExpressionsSet;
 import com.sri.ai.expresso.helper.Expressions;
 import com.sri.ai.grinder.helper.GrinderUtil;
-import com.sri.ai.grinder.library.Associative;
-import com.sri.ai.grinder.library.Equality;
-import com.sri.ai.grinder.library.FunctorConstants;
-import com.sri.ai.grinder.library.boole.And;
-import com.sri.ai.grinder.library.boole.Or;
-import com.sri.ai.grinder.library.controlflow.IfThenElse;
-import com.sri.ai.grinder.library.number.GreaterThan;
-import com.sri.ai.grinder.library.number.LessThanOrEqualTo;
-import com.sri.ai.grinder.library.number.Minus;
-import com.sri.ai.grinder.library.number.Plus;
-import com.sri.ai.grinder.library.number.Times;
+import com.sri.ai.grinder.sgdpllt.library.Associative;
+import com.sri.ai.grinder.sgdpllt.library.Equality;
+import com.sri.ai.grinder.sgdpllt.library.FunctorConstants;
+import com.sri.ai.grinder.sgdpllt.library.boole.And;
+import com.sri.ai.grinder.sgdpllt.library.boole.Or;
+import com.sri.ai.grinder.sgdpllt.library.controlflow.IfThenElse;
+import com.sri.ai.grinder.sgdpllt.library.number.GreaterThan;
+import com.sri.ai.grinder.sgdpllt.library.number.LessThanOrEqualTo;
+import com.sri.ai.grinder.sgdpllt.library.number.Minus;
+import com.sri.ai.grinder.sgdpllt.library.number.Plus;
+import com.sri.ai.grinder.sgdpllt.library.number.Times;
 import com.typesafe.config.ConfigException.Parse;
 
 public class SparkSGDPLLTMapReduceExperimentTest {
