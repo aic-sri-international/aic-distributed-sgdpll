@@ -7,20 +7,22 @@ import com.sri.ai.grinder.sgdpllt.api.Context;
 import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
 
 // NOTE: Immutable
-public class ContextDependentExpressionProblem implements Serializable {	
+public abstract class ContextDependentExpressionProblem implements Serializable {	
 	private static final long serialVersionUID = 1L;
+	
+	public final SerializableContext serializableContext; 
 	
 	// DON'T SERIALIZE
 	
-	public ContextDependentExpressionProblem(ContextDependentExpressionProblem parentProblem, ContextDependentProblemStepSolver<Expression> stepSolver, Context context) {
-		// TODO
+	
+	public ContextDependentExpressionProblem(Context context) {
+		this.serializableContext = new SerializableContext(context);
 	}
 	
-	public ContextDependentProblemStepSolver<Expression> getLocalStepSolver() {
-		return null; // TODO
-	}
+	public abstract ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
+	public abstract ContextDependentProblemStepSolver<Expression> getLocalStepSolver();
 	
 	public Context getLocalContext() {
-		return null; // TODO
+		return serializableContext.getLocalContext();
 	}
 }

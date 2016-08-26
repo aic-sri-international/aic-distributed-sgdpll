@@ -65,8 +65,8 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			final ActorRef subSolver1 = getContext().actorOf(props());
 			final ActorRef subSolver2 = getContext().actorOf(props());
 			final UntypedActorContext actorContext = getContext();
-			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, new ContextDependentExpressionProblem(problem, step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
-			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, new ContextDependentExpressionProblem(problem, step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
+			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
+			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
 			Future<Expression> resultFuture = subSolutionFuture1.zip(subSolutionFuture2).map(new Mapper<scala.Tuple2<Object, Object>, Expression>() {
 				@Override
 				public Expression apply(scala.Tuple2<Object, Object> zipped) {
