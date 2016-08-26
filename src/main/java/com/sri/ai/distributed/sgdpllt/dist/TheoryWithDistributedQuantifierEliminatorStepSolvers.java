@@ -10,16 +10,19 @@ import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 import com.sri.ai.grinder.sgdpllt.group.AssociativeCommutativeGroup;
 
 import akka.actor.ActorRefFactory;
+import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 
 public class TheoryWithDistributedQuantifierEliminatorStepSolvers extends TheoryWrapper {
 	private static final long serialVersionUID = 1L;
 	
 	private transient ActorRefFactory actorRefFactory;
+	private transient LoggingAdapter localLog;
 
-	public TheoryWithDistributedQuantifierEliminatorStepSolvers(Creator<Theory> theoryCreator, ActorRefFactory actorRefFactory) throws Exception {
+	public TheoryWithDistributedQuantifierEliminatorStepSolvers(Creator<Theory> theoryCreator, ActorRefFactory actorRefFactory, LoggingAdapter localLog) throws Exception {
 		super(theoryCreator);
 		this.actorRefFactory = actorRefFactory;
+		this.localLog = localLog;
 	}
 	
 	// NOTE: This logic works under the assumption this method is only called at the top level (i.e. not nested) as it is dependent
@@ -29,7 +32,7 @@ public class TheoryWithDistributedQuantifierEliminatorStepSolvers extends Theory
 	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
 		QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver = (QuantifierEliminationStepSolver) super.getSingleVariableConstraintQuantifierEliminatorStepSolver(group, constraint, currentBody, context);
 
-		QuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, actorRefFactory);
+		QuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, actorRefFactory, localLog);
 		
 		return result;
 	}

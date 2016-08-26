@@ -7,6 +7,7 @@ import com.sri.ai.grinder.sgdpllt.api.Context;
 import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
 
 import akka.actor.ActorRefFactory;
+import akka.event.LoggingAdapter;
 
 // NOTE: Immutable
 public abstract class ContextDependentExpressionProblem implements Serializable {	
@@ -21,7 +22,8 @@ public abstract class ContextDependentExpressionProblem implements Serializable 
 		this.serializableContext = new SerializableContext(context);
 	}
 	
-	public abstract ContextDependentExpressionProblem createSubProblem(ActorRefFactory actorRefFactory, ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
+	public abstract void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog);	
+	public abstract ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
 	public abstract ContextDependentProblemStepSolver<Expression> getLocalStepSolver();
 	
 	public Context getLocalContext() {

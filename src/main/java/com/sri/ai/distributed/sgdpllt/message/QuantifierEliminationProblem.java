@@ -7,6 +7,7 @@ import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 
 import akka.actor.ActorRefFactory;
+import akka.event.LoggingAdapter;
 
 public class QuantifierEliminationProblem extends ContextDependentExpressionProblem {
 	private static final long serialVersionUID = 1L;
@@ -17,11 +18,16 @@ public class QuantifierEliminationProblem extends ContextDependentExpressionProb
 		super(context);
 		this.distributedQuantifierEliminationStepSolver = distributedQuantifierEliminationStepSolver;
 	}
+	
+	public void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog) {
+		this.distributedQuantifierEliminationStepSolver.setActorRefFactory(actorRefFactory);
+		this.distributedQuantifierEliminationStepSolver.setLocalLog(actorLog);
+	}
 
 	@Override
-	public ContextDependentExpressionProblem createSubProblem(ActorRefFactory actorRefFactory, ContextDependentProblemStepSolver<Expression> localStepSolver, Context localContext) {
+	public ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> localStepSolver, Context localContext) {
 		if (localStepSolver instanceof QuantifierEliminationStepSolver) {
-			return new QuantifierEliminationProblem(localContext, new DistributedQuantifierEliminationStepSolver((QuantifierEliminationStepSolver) localStepSolver, actorRefFactory));
+			return new QuantifierEliminationProblem(localContext, new DistributedQuantifierEliminationStepSolver((QuantifierEliminationStepSolver) localStepSolver));
 		}
 		else {
 			throw new IllegalArgumentException("Unexpected local step solver:"+localStepSolver);

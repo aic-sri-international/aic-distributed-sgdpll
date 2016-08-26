@@ -12,6 +12,7 @@ import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorRefFactory;
+import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
@@ -25,16 +26,30 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	private static final Timeout _defaultTimeout = new Timeout(60, TimeUnit.SECONDS); 
 		
 	private ActorRefFactory actorRefFactory;
+	private LoggingAdapter localLog;
 	
-	public DistributedQuantifierEliminationStepSolver(QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver,  ActorRefFactory actorRefFactory) {
+	public DistributedQuantifierEliminationStepSolver(QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver) {
 		super(constructCreator(localQuantifierEliminatorStepSolver));
-		this.actorRefFactory =  actorRefFactory;
+	}
+	
+	public DistributedQuantifierEliminationStepSolver(QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver,  ActorRefFactory actorRefFactory, LoggingAdapter localLog) {
+		super(constructCreator(localQuantifierEliminatorStepSolver));
+		setActorRefFactory(actorRefFactory);
+		setLocalLog(localLog);
+	}
+	
+	public void setActorRefFactory(ActorRefFactory actorRefFactory) {
+		this.actorRefFactory = actorRefFactory;
+	}
+	
+	public void setLocalLog(LoggingAdapter localLog) {
+		this.localLog = localLog;
 	}
 	
 	@Override
 	public Expression solve(Context context) {
 		Expression result;
-System.out.println("DQEL-solve@"+actorRefFactory+":idx="+this.getIndex()+", idx constraint="+this.getIndexConstraint()+", body="+this.getBody());
+		localLog.debug("DQEL-solve:idx={}, idx constraint={}, body={}", getIndex(), getIndexConstraint(), getBody());
 		QuantifierEliminationProblem quantifierEliminationProblem = new QuantifierEliminationProblem(context, this);
 		ActorRef contextDependentExpressionProblemSolverActor = actorRefFactory.actorOf(ContextDependentExpressionProblemSolverActor.props());
 		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor, quantifierEliminationProblem, _defaultTimeout);

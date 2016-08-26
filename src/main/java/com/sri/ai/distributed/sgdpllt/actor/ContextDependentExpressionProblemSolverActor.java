@@ -17,6 +17,8 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
 import akka.dispatch.Mapper;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
@@ -27,6 +29,8 @@ import scala.concurrent.Future;
 //TODO - this code as designed is blocking, which is non-optimal but required to work with the pre-existing logic in aic-expresso.
 //Ideally, messages should be sent and received asynchronously throughout the call hierarchy.	
 public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
+	
+	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 	
 	public static Props props() {
 		return Props.create(new Creator<ContextDependentExpressionProblemSolverActor>() {
@@ -52,8 +56,14 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 	}
 	
 	protected void solve(ContextDependentExpressionProblem problem) throws Exception {		
+		// NOTE: This must be called first before it can be acted upon.
+		problem.setLocalActorInfo(getContext(), log);
+		
 		ContextDependentProblemStepSolver<Expression> stepSolver = problem.getLocalStepSolver();
 		Context context = problem.getLocalContext();	
+		
+		log.debug("CDEPS-solve:stepSolver={}", stepSolver);
+		
 		Expression result;
 		ContextDependentProblemStepSolver.SolverStep<Expression> step = stepSolver.step(context);
 		if (step.itDepends()) {			
@@ -64,9 +74,9 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			final ActorRef subSolver1 = getContext().actorOf(props());
 			final ActorRef subSolver2 = getContext().actorOf(props());
 			final UntypedActorContext actorContext = getContext();
-// TODO - this is going to cause the DistributedQuantifierEliminatorStepSolvers to use this and not the child solvers to create children, which is sort of wrong.			
-			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(getContext(), step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
-			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(getContext(), step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
+			
+			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
+			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
 			Future<Expression> resultFuture = subSolutionFuture1.zip(subSolutionFuture2).map(new Mapper<scala.Tuple2<Object, Object>, Expression>() {
 				@Override
 				public Expression apply(scala.Tuple2<Object, Object> zipped) {
@@ -83,11 +93,11 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			}, ec);
 			
 			result = Await.result(resultFuture, _defaultTimeout.duration());
-System.out.println("CDEPS-solve itDepends@"+getSelf()+":result="+result);			
+			log.debug("CDEPS-solve itDepends:result={}", result);			
 		}
 		else {				
 			result = step.getValue();
-System.out.println("CDEPS-solve solution@"+getSelf()+":result="+result);
+			log.debug("CDEPS-solve solution:result={}", result);
 		}
 		
 		getSender().tell(new ContextDependentExpressionSolution(result), getSelf());
