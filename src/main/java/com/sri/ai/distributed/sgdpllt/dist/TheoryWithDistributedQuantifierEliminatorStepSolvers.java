@@ -15,22 +15,25 @@ import akka.japi.Creator;
 public class TheoryWithDistributedQuantifierEliminatorStepSolvers extends TheoryWrapper {
 	private static final long serialVersionUID = 1L;
 	
-	private transient ActorRef contextDependentExpressionProblemSolverActor;
+	private transient ActorRef rootContextDependentExpressionProblemSolverActor;
 
 	public TheoryWithDistributedQuantifierEliminatorStepSolvers(Creator<Theory> theoryCreator, ActorRef contextDependentExpressionProblemSolverActor) throws Exception {
 		super(theoryCreator);
-		this.contextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
+		this.rootContextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
 	}
 	
 	public void setContextDependentExpressionProblemSolverActor(ActorRef contextDependentExpressionProblemSolverActor) {
-		this.contextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
+		this.rootContextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
 	}
 	
+	// NOTE: This logic works under the assumption this method is only called at the top level (i.e. not nested) as it is dependent
+	// root 'contextDependentExpressionProblemSolverActor' to kick things off. If this assumption does not hold (i.e. referenced via nested calls)
+	// then things will not work as the logic would keep looping back to the root instance.
 	@Override
 	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
 		QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver = (QuantifierEliminationStepSolver) super.getSingleVariableConstraintQuantifierEliminatorStepSolver(group, constraint, currentBody, context);
 
-		QuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, contextDependentExpressionProblemSolverActor);
+		QuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, rootContextDependentExpressionProblemSolverActor);
 		
 		return result;
 	}

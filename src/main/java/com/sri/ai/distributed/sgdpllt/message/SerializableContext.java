@@ -15,7 +15,8 @@ public class SerializableContext implements Serializable {
 	
 	public Context getLocalContext() {
 		if (localContext == null) {
-// TODO
+			// TODO - add support for context serialization
+			throw new UnsupportedOperationException("TODO-add support for context serialization.");
 		}
 		return localContext;
 	}

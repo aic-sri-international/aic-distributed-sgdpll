@@ -3,6 +3,7 @@ package com.sri.ai.distributed.sgdpllt.dist;
 import java.util.concurrent.TimeUnit;
 
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution;
+import com.sri.ai.distributed.sgdpllt.message.QuantifierEliminationProblem;
 import com.sri.ai.distributed.sgdpllt.wrapper.QuantifierEliminationStepSolverWrapper;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
@@ -22,7 +23,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	private static final Timeout _defaultTimeout = new Timeout(60, TimeUnit.SECONDS); 
 	
 	
-	private transient ActorRef contextDependentExpressionProblemSolverActor;
+	private ActorRef contextDependentExpressionProblemSolverActor;
 	
 	public DistributedQuantifierEliminationStepSolver(QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver,  ActorRef contextDependentExpressionProblemSolverActor) {
 		super(constructCreator(localQuantifierEliminatorStepSolver));
@@ -32,9 +33,9 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	@Override
 	public Expression solve(Context context) {
 		Expression result;
-		
-		// TODO - null argument need to be a QuantifierProblem message.
-		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor, null, _defaultTimeout);
+System.out.println("DQEL-solve@"+contextDependentExpressionProblemSolverActor+":"+context);		
+		QuantifierEliminationProblem quantifierEliminationProblem = new QuantifierEliminationProblem(contextDependentExpressionProblemSolverActor, context, this);
+		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor, quantifierEliminationProblem, _defaultTimeout);
 		
 		try {
 //TODO - ideally, do not want to use blocking but have to for the time being to work with existing aic-expresso control flow.				
@@ -51,7 +52,20 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 // TODO - I need to handle cloning carefully, so that a new creator is constructed for the clone and not the original instance.
 	
 		
-	public static Creator<QuantifierEliminationStepSolver> constructCreator(QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver) {
-		return null; // TODO
+	public static Creator<QuantifierEliminationStepSolver> constructCreator(final QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver) {
+// TODO - add proper support for creating quantifier eliminator step solvers based on information from a given local instance		
+		return new Creator<QuantifierEliminationStepSolver>() {
+			private static final long serialVersionUID = 1L;
+			int cnt = 0;
+			@Override
+			public QuantifierEliminationStepSolver create() {
+				cnt++;
+				if (cnt > 1) {
+					throw new IllegalStateException("Creating local QuantifierEliminationStepSolver more than once, currently not supported");
+				}
+// TODO - this is a hack!!!, should work in local process when no serialization is used.				
+				return localQuantifierEliminatorStepSolver;
+			}
+		};
 	}
 }
