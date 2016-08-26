@@ -46,6 +46,11 @@ public class QuantifierEliminationStepSolverWrapper implements QuantifierElimina
 	public Expression getIndex() {
 		return getLocalWrappedQuantifierEliminationStepSolver().getIndex();
 	}
+	
+	@Override
+	public Expression getBody() {
+		return getLocalWrappedQuantifierEliminationStepSolver().getBody();
+	}
 
 	@Override
 	public Expression makeRandomUnconditionalBody(Random random) {

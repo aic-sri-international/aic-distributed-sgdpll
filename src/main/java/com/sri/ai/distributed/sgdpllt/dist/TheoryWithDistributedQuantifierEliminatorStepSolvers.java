@@ -9,21 +9,17 @@ import com.sri.ai.grinder.sgdpllt.api.Theory;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 import com.sri.ai.grinder.sgdpllt.group.AssociativeCommutativeGroup;
 
-import akka.actor.ActorRef;
+import akka.actor.ActorRefFactory;
 import akka.japi.Creator;
 
 public class TheoryWithDistributedQuantifierEliminatorStepSolvers extends TheoryWrapper {
 	private static final long serialVersionUID = 1L;
 	
-	private transient ActorRef rootContextDependentExpressionProblemSolverActor;
+	private transient ActorRefFactory actorRefFactory;
 
-	public TheoryWithDistributedQuantifierEliminatorStepSolvers(Creator<Theory> theoryCreator, ActorRef contextDependentExpressionProblemSolverActor) throws Exception {
+	public TheoryWithDistributedQuantifierEliminatorStepSolvers(Creator<Theory> theoryCreator, ActorRefFactory actorRefFactory) throws Exception {
 		super(theoryCreator);
-		this.rootContextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
-	}
-	
-	public void setContextDependentExpressionProblemSolverActor(ActorRef contextDependentExpressionProblemSolverActor) {
-		this.rootContextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
+		this.actorRefFactory = actorRefFactory;
 	}
 	
 	// NOTE: This logic works under the assumption this method is only called at the top level (i.e. not nested) as it is dependent
@@ -33,7 +29,7 @@ public class TheoryWithDistributedQuantifierEliminatorStepSolvers extends Theory
 	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
 		QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver = (QuantifierEliminationStepSolver) super.getSingleVariableConstraintQuantifierEliminatorStepSolver(group, constraint, currentBody, context);
 
-		QuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, rootContextDependentExpressionProblemSolverActor);
+		QuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, actorRefFactory);
 		
 		return result;
 	}

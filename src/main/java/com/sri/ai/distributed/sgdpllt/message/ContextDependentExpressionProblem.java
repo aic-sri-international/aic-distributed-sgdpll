@@ -6,24 +6,22 @@ import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
 import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
 
-import akka.actor.ActorRef;
+import akka.actor.ActorRefFactory;
 
 // NOTE: Immutable
 public abstract class ContextDependentExpressionProblem implements Serializable {	
 	private static final long serialVersionUID = 1L;
 	
-	public final ActorRef contextDependentExpressionProblemSolverActor;
 	public final SerializableContext serializableContext; 
 	
 	// DON'T SERIALIZE
 	
 	
-	public ContextDependentExpressionProblem(ActorRef contextDependentExpressionProblemSolverActor, Context context) {
-		this.contextDependentExpressionProblemSolverActor = contextDependentExpressionProblemSolverActor;
+	public ContextDependentExpressionProblem(Context context) {
 		this.serializableContext = new SerializableContext(context);
 	}
 	
-	public abstract ContextDependentExpressionProblem createSubProblem(ActorRef contextDependentExpressionProblemSolverActor, ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
+	public abstract ContextDependentExpressionProblem createSubProblem(ActorRefFactory actorRefFactory, ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
 	public abstract ContextDependentProblemStepSolver<Expression> getLocalStepSolver();
 	
 	public Context getLocalContext() {

@@ -53,12 +53,10 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 	
 	protected void solve(ContextDependentExpressionProblem problem) throws Exception {		
 		ContextDependentProblemStepSolver<Expression> stepSolver = problem.getLocalStepSolver();
-		Context context = problem.getLocalContext();
-System.out.println("CDEPS-solve@"+getSelf());		
+		Context context = problem.getLocalContext();	
 		Expression result;
 		ContextDependentProblemStepSolver.SolverStep<Expression> step = stepSolver.step(context);
-		if (step.itDepends()) {
-System.out.println("CDEPS-solve itDepends@"+getSelf());				
+		if (step.itDepends()) {			
 			final Expression splitOnLiteral = step.getLiteral();
 			ContextSplitting split = (ContextSplitting) step.getContextSplitting();
 			myAssert(() -> split.isUndefined(), () -> "Undefined " + ContextSplitting.class + " result value: " + split.getResult());
@@ -66,8 +64,9 @@ System.out.println("CDEPS-solve itDepends@"+getSelf());
 			final ActorRef subSolver1 = getContext().actorOf(props());
 			final ActorRef subSolver2 = getContext().actorOf(props());
 			final UntypedActorContext actorContext = getContext();
-			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(subSolver1, step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
-			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(subSolver2, step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
+// TODO - this is going to cause the DistributedQuantifierEliminatorStepSolvers to use this and not the child solvers to create children, which is sort of wrong.			
+			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(getContext(), step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
+			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(getContext(), step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
 			Future<Expression> resultFuture = subSolutionFuture1.zip(subSolutionFuture2).map(new Mapper<scala.Tuple2<Object, Object>, Expression>() {
 				@Override
 				public Expression apply(scala.Tuple2<Object, Object> zipped) {
@@ -84,10 +83,11 @@ System.out.println("CDEPS-solve itDepends@"+getSelf());
 			}, ec);
 			
 			result = Await.result(resultFuture, _defaultTimeout.duration());
+System.out.println("CDEPS-solve itDepends@"+getSelf()+":result="+result);			
 		}
-		else {
-System.out.println("CDEPS-solution@"+getSelf());				
+		else {				
 			result = step.getValue();
+System.out.println("CDEPS-solve solution@"+getSelf()+":result="+result);
 		}
 		
 		getSender().tell(new ContextDependentExpressionSolution(result), getSelf());
