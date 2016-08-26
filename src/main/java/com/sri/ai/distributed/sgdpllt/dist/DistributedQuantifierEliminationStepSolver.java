@@ -37,11 +37,13 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 System.out.println("DQEL-solve@"+actorRefFactory+":idx="+this.getIndex()+", idx constraint="+this.getIndexConstraint()+", body="+this.getBody());
 		QuantifierEliminationProblem quantifierEliminationProblem = new QuantifierEliminationProblem(context, this);
 		ActorRef contextDependentExpressionProblemSolverActor = actorRefFactory.actorOf(ContextDependentExpressionProblemSolverActor.props());
-		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor, quantifierEliminationProblem, _defaultTimeout);		
+		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor, quantifierEliminationProblem, _defaultTimeout);
 		try {
 //TODO - ideally, do not want to use blocking but have to for the time being to work with existing aic-expresso control flow.				
 			ContextDependentExpressionSolution solution = (ContextDependentExpressionSolution) Await.result(futureResult, _defaultTimeout.duration());
 			result = solution.getLocalValue();
+			
+			// Ensure we clean up the actor.
 			actorRefFactory.stop(contextDependentExpressionProblemSolverActor);
 		}
 		catch (Exception ex) {
