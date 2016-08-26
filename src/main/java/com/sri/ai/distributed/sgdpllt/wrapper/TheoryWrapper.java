@@ -40,8 +40,8 @@ public class TheoryWrapper implements Theory, Serializable {
 	}
 	
 	@Override
-	public MapBasedTopSimplifier getTopSimplifier() {
-		return getLocalWrappedTheory().getTopSimplifier();
+	public MapBasedTopSimplifier getMapBasedTopSimplifier() {
+		return getLocalWrappedTheory().getMapBasedTopSimplifier();
 	}
 	
 	@Override

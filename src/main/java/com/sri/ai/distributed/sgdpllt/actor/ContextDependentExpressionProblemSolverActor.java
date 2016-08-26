@@ -56,7 +56,7 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 		Context context = problem.getLocalContext();
 		
 		Expression result;
-		ContextDependentProblemStepSolver.SolutionStep<Expression> step = stepSolver.step(context);
+		ContextDependentProblemStepSolver.SolverStep<Expression> step = stepSolver.step(context);
 		if (step.itDepends()) {
 			final Expression splitOnLiteral = step.getLiteral();
 			ContextSplitting split = (ContextSplitting) step.getContextSplitting();
