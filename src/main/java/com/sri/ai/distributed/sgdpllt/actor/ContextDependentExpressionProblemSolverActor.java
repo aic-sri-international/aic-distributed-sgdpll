@@ -66,7 +66,7 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 		
 		Expression result;
 		ContextDependentProblemStepSolver.SolverStep<Expression> step = stepSolver.step(context);
-		if (step.itDepends()) {			
+		if (step.itDepends()) {	
 			final Expression splitOnLiteral = step.getLiteral();
 			ContextSplitting split = (ContextSplitting) step.getContextSplitting();
 			myAssert(() -> split.isUndefined(), () -> "Undefined " + ContextSplitting.class + " result value: " + split.getResult());

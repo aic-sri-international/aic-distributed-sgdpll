@@ -9,19 +9,26 @@ import com.sri.ai.grinder.sgdpllt.api.SingleVariableConstraint;
 import com.sri.ai.grinder.sgdpllt.api.Theory;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 import com.sri.ai.grinder.sgdpllt.group.AssociativeCommutativeGroup;
-
 import akka.japi.Creator;
 
 public class QuantifierEliminationStepSolverWrapper implements QuantifierEliminationStepSolver, Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private final Creator<QuantifierEliminationStepSolver> quantifierEliminationStepSolverCreator;
+	private Creator<QuantifierEliminationStepSolver> quantifierEliminationStepSolverCreator;
 
 	// DON'T SERIALIZE
 	private transient QuantifierEliminationStepSolver wrappedQuantifierEliminationStepSolver;
 
 	public QuantifierEliminationStepSolverWrapper(
 			Creator<QuantifierEliminationStepSolver> quantifierEliminationStepSolverCreator) {
+		setQuantifierEliminationStepSolverCreator(quantifierEliminationStepSolverCreator);
+	}
+	
+	public Creator<QuantifierEliminationStepSolver> getQuantifierEliminationStepSolverCreator() {
+		return quantifierEliminationStepSolverCreator;
+	}
+	
+	public void setQuantifierEliminationStepSolverCreator(Creator<QuantifierEliminationStepSolver> quantifierEliminationStepSolverCreator) {
 		this.quantifierEliminationStepSolverCreator = quantifierEliminationStepSolverCreator;
 	}
 
@@ -79,10 +86,10 @@ public class QuantifierEliminationStepSolverWrapper implements QuantifierElimina
 	// END - QuantifierEliminationStepSolver
 	//
 
-	protected QuantifierEliminationStepSolver getLocalWrappedQuantifierEliminationStepSolver() {
+	public QuantifierEliminationStepSolver getLocalWrappedQuantifierEliminationStepSolver() {
 		if (wrappedQuantifierEliminationStepSolver == null) {
 			try {
-				wrappedQuantifierEliminationStepSolver = quantifierEliminationStepSolverCreator.create();
+				wrappedQuantifierEliminationStepSolver = getQuantifierEliminationStepSolverCreator().create();
 			} catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}

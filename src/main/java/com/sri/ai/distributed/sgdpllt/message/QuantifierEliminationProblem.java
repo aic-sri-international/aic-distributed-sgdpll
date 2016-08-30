@@ -37,6 +37,6 @@ public class QuantifierEliminationProblem extends ContextDependentExpressionProb
 	@Override
 	public ContextDependentProblemStepSolver<Expression> getLocalStepSolver() {
 		// This object knows how to grant access to the local step solver (i.e. it wraps it).
-		return distributedQuantifierEliminationStepSolver;
+		return distributedQuantifierEliminationStepSolver.getLocalWrappedQuantifierEliminationStepSolver();
 	}
 }
