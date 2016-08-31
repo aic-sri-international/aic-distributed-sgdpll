@@ -8,6 +8,8 @@ import com.sri.ai.distributed.sgdpllt.message.QuantifierEliminationProblem;
 import com.sri.ai.distributed.sgdpllt.wrapper.QuantifierEliminationStepSolverWrapper;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
+import com.sri.ai.grinder.sgdpllt.api.SingleVariableConstraint;
+import com.sri.ai.grinder.sgdpllt.core.solver.AbstractQuantifierEliminationStepSolver;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 import com.sri.ai.grinder.sgdpllt.theory.differencearithmetic.SummationOnDifferenceArithmeticAndPolynomialStepSolver;
@@ -66,9 +68,6 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		return "DQEL-local=" + this.getLocalWrappedQuantifierEliminationStepSolver().getClass().getSimpleName();
 	}
 
-	// TODO - I need to handle cloning carefully, so that a new creator is
-	// constructed for the clone and not the original instance.
-
 	protected void updateCreator() {
 		// Ensure the appropriate distributed solver is used.
 		((CreatorForDistributedQuantifierEliminationStepSolver) this
@@ -119,9 +118,6 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		}
 	}
 
-	// QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver
-	// SummationOnDifferenceArithmeticAndPolynomialStepSolver
-	// SummationOnLinearRealArithmeticAndPolynomialStepSolver
 	public abstract static class CreatorForDistributedQuantifierEliminationStepSolver
 			implements Creator<QuantifierEliminationStepSolver> {
 		private static final long serialVersionUID = 1L;
@@ -201,6 +197,12 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(this, distSolver.actorRefFactory, distSolver.localLog);
 			return (DistSummationOnDifferenceArithmeticAndPolynomialStepSolver) cloneDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
+		
+		@Override
+		protected AbstractQuantifierEliminationStepSolver makeWithNewIndexConstraint(SingleVariableConstraint newIndexConstraint) {
+			DistributedQuantifierEliminationStepSolver newDistSolver = new DistributedQuantifierEliminationStepSolver(super.makeWithNewIndexConstraint(newIndexConstraint), distSolver.actorRefFactory, distSolver.localLog);
+			return (DistSummationOnDifferenceArithmeticAndPolynomialStepSolver) newDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
+		}
 	}
 
 	public static class CreatorSummationOnLinearRealArithmeticAndPolynomialStepSolver
@@ -237,6 +239,12 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		public DistSummationOnLinearRealArithmeticAndPolynomialStepSolver clone() {
 			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(this, distSolver.actorRefFactory, distSolver.localLog);
 			return (DistSummationOnLinearRealArithmeticAndPolynomialStepSolver) cloneDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
+		}
+		
+		@Override
+		protected AbstractQuantifierEliminationStepSolver makeWithNewIndexConstraint(SingleVariableConstraint newIndexConstraint) {
+			DistributedQuantifierEliminationStepSolver newDistSolver = new DistributedQuantifierEliminationStepSolver(super.makeWithNewIndexConstraint(newIndexConstraint), distSolver.actorRefFactory, distSolver.localLog);
+			return (DistSummationOnLinearRealArithmeticAndPolynomialStepSolver) newDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
 	}
 }
