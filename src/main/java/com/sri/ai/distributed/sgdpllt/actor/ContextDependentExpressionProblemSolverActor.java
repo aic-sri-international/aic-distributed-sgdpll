@@ -84,10 +84,6 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 					ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) zipped._2;
 					Expression combinedSolution = IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
 					
-					// These are once off calls, so ensure we clean up.
-					actorContext.stop(subSolver1);
-					actorContext.stop(subSolver2);
-					
 					return combinedSolution;
 				}
 			}, ec);
@@ -101,5 +97,8 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 		}
 		
 		getSender().tell(new ContextDependentExpressionSolution(result), getSelf());
+		
+		// Should only be called once, after which stop self.
+		getContext().stop(getSelf());
 	}
 }

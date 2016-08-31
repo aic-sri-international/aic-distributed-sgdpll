@@ -91,9 +91,6 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 			ContextDependentExpressionSolution solution = (ContextDependentExpressionSolution) Await
 					.result(futureResult, _defaultTimeout.duration());
 			result = solution.getLocalValue();
-
-			// Ensure we clean up the actor.
-			distSolver.actorRefFactory.stop(contextDependentExpressionProblemSolverActor);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
