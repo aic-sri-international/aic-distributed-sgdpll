@@ -7,7 +7,8 @@ import com.sri.ai.grinder.sgdpllt.api.Context;
 public class SerializableContext implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private transient Context localContext;
+	// Is serializable??
+	private Context localContext;
 	
 	public SerializableContext(Context localContext) {
 		this.localContext = localContext;

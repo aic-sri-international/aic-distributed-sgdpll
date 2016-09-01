@@ -7,7 +7,7 @@ import java.io.ObjectOutputStream;
 
 public class TestSerialize {
 
-	public static final boolean SERIALIZE_ALL_MESSAGES = false;
+	public static final boolean SERIALIZE_ALL_MESSAGES = true;
 	
 	public static Object serializeMessage(Object msg) {
 		Object result = null;
@@ -25,6 +25,8 @@ public class TestSerialize {
 		        ois.close();
 			}
 			catch (Exception ex) {
+				System.err.println("Exception thrown in TestSerializer");
+				ex.printStackTrace();
 				throw new RuntimeException(ex);
 			}
 		}
