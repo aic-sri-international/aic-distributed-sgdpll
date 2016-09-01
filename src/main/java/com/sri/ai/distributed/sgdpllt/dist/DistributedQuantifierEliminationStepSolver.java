@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import com.sri.ai.distributed.sgdpllt.actor.ContextDependentExpressionProblemSolverActor;
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution;
 import com.sri.ai.distributed.sgdpllt.message.QuantifierEliminationProblem;
+import com.sri.ai.distributed.sgdpllt.util.TestSerialize;
 import com.sri.ai.distributed.sgdpllt.wrapper.QuantifierEliminationStepSolverWrapper;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
@@ -12,6 +13,11 @@ import com.sri.ai.grinder.sgdpllt.api.SingleVariableConstraint;
 import com.sri.ai.grinder.sgdpllt.core.solver.AbstractQuantifierEliminationStepSolver;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
+import com.sri.ai.grinder.sgdpllt.group.AssociativeCommutativeGroup;
+import com.sri.ai.grinder.sgdpllt.group.Max;
+import com.sri.ai.grinder.sgdpllt.group.Product;
+import com.sri.ai.grinder.sgdpllt.group.Sum;
+import com.sri.ai.grinder.sgdpllt.group.SumProduct;
 import com.sri.ai.grinder.sgdpllt.theory.differencearithmetic.SummationOnDifferenceArithmeticAndPolynomialStepSolver;
 import com.sri.ai.grinder.sgdpllt.theory.linearrealarithmetic.SummationOnLinearRealArithmeticAndPolynomialStepSolver;
 
@@ -84,7 +90,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		ActorRef contextDependentExpressionProblemSolverActor = distSolver.actorRefFactory
 				.actorOf(ContextDependentExpressionProblemSolverActor.props());
 		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor,
-				quantifierEliminationProblem, _defaultTimeout);
+				TestSerialize.serializeMessage(quantifierEliminationProblem), _defaultTimeout);
 		try {
 			// TODO - ideally, do not want to use blocking but have to for the
 			// time being to work with existing aic-expresso control flow.
@@ -120,30 +126,81 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		private static final long serialVersionUID = 1L;
 
 		public transient DistributedQuantifierEliminationStepSolver distSolver;
+		
+		
+		protected Creator<AssociativeCommutativeGroup> groupCreator;
+		// TODO should be properly serializable versions
+		protected SingleVariableConstraint indexConstraint;
+		protected Expression body;
+		
+		public CreatorForDistributedQuantifierEliminationStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint indexConstraint, Expression body) {
+			if (group instanceof SumProduct) {
+				groupCreator = new Creator<AssociativeCommutativeGroup>() {	
+					private static final long serialVersionUID = 1L;
+					@Override
+					public AssociativeCommutativeGroup create() {
+						return new SumProduct();
+					}
+				};
+			}
+			else if (group instanceof Sum) {
+				groupCreator = new Creator<AssociativeCommutativeGroup>() {	
+					private static final long serialVersionUID = 1L;
+					@Override
+					public AssociativeCommutativeGroup create() {
+						return new Sum();
+					}
+				};				
+			}
+			else if (group instanceof Product) {
+				groupCreator = new Creator<AssociativeCommutativeGroup>() {	
+					private static final long serialVersionUID = 1L;
+					@Override
+					public AssociativeCommutativeGroup create() {
+						return new Product();
+					}
+				};
+			}
+			else if (group instanceof Max) {
+				groupCreator = new Creator<AssociativeCommutativeGroup>() {	
+					private static final long serialVersionUID = 1L;
+					@Override
+					public AssociativeCommutativeGroup create() {
+						return new Max();
+					}
+				};
+			}
+			else {
+				throw new IllegalArgumentException("AssociativeCommutativeGroup of this type is not supported:"+group);
+			}
+			this.indexConstraint = indexConstraint;
+			this.body = body;
+		}
 	}
 
 	public static class CreatorForQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver
 			extends CreatorForDistributedQuantifierEliminationStepSolver {
 		private static final long serialVersionUID = 1L;
-
-		// TODO - need to serialize parts
-		private transient QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver localSolver;
 		
 		public CreatorForQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(
 				QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver localSolver) {
-			this.localSolver = localSolver;
+			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
 		}
 
 		@Override
-		public QuantifierEliminationStepSolver create() {
-			return new DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(this.distSolver, this.localSolver);
+		public QuantifierEliminationStepSolver create() throws Exception {
+			return new DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(this.distSolver, groupCreator.create(), indexConstraint, body);
 		}
 	}
 	
 	public static class DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver extends QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver {
 		private transient DistributedQuantifierEliminationStepSolver distSolver;
 		public DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(DistributedQuantifierEliminationStepSolver distSolver, QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver localSolver) {
-			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
+			this(distSolver, localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());			
+		}
+		
+		public DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(DistributedQuantifierEliminationStepSolver distSolver, AssociativeCommutativeGroup group, SingleVariableConstraint indexConstraint, Expression body) {
+			super(group, indexConstraint, body);
 			this.distSolver = distSolver;
 		}
 		
@@ -162,25 +219,26 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	public static class CreatorForSummationOnDifferenceArithmeticAndPolynomialStepSolver
 			extends CreatorForDistributedQuantifierEliminationStepSolver {
 		private static final long serialVersionUID = 1L;
-
-		// TODO - need to serialize parts
-		private transient SummationOnDifferenceArithmeticAndPolynomialStepSolver localSolver;
 		
 		public CreatorForSummationOnDifferenceArithmeticAndPolynomialStepSolver(
 				SummationOnDifferenceArithmeticAndPolynomialStepSolver localSolver) {
-			this.localSolver = localSolver;
+			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
 		}
 
 		@Override
 		public QuantifierEliminationStepSolver create() {
-			return new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, localSolver);
+			return new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, indexConstraint, body));
 		}
 	}
 	
 	public static class DistSummationOnDifferenceArithmeticAndPolynomialStepSolver extends SummationOnDifferenceArithmeticAndPolynomialStepSolver {
 		private transient DistributedQuantifierEliminationStepSolver distSolver;
 		public DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(DistributedQuantifierEliminationStepSolver distSolver, SummationOnDifferenceArithmeticAndPolynomialStepSolver localSolver) {
-			super(localSolver.getIndexConstraint(), localSolver.getBody());
+			this(distSolver, localSolver.getIndexConstraint(), localSolver.getBody());
+		}
+		
+		public DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(DistributedQuantifierEliminationStepSolver distSolver, SingleVariableConstraint indexConstraint, Expression body) {
+			super(indexConstraint, body);
 			this.distSolver = distSolver;
 		}
 		
@@ -205,25 +263,26 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	public static class CreatorSummationOnLinearRealArithmeticAndPolynomialStepSolver
 			extends CreatorForDistributedQuantifierEliminationStepSolver {
 		private static final long serialVersionUID = 1L;
-		
-		// TODO - need to serialize parts
-		private transient SummationOnLinearRealArithmeticAndPolynomialStepSolver localSolver;
 
 		public CreatorSummationOnLinearRealArithmeticAndPolynomialStepSolver(
 				SummationOnLinearRealArithmeticAndPolynomialStepSolver localSolver) {
-			this.localSolver = localSolver;
+			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
 		}
 
 		@Override
 		public QuantifierEliminationStepSolver create() {
-			return new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(this.distSolver, localSolver);
+			return new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(this.distSolver, new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(distSolver, indexConstraint, body));
 		}
 	}	
 	
 	public static class DistSummationOnLinearRealArithmeticAndPolynomialStepSolver extends SummationOnLinearRealArithmeticAndPolynomialStepSolver {
 		private transient DistributedQuantifierEliminationStepSolver distSolver;
 		public DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(DistributedQuantifierEliminationStepSolver distSolver, SummationOnLinearRealArithmeticAndPolynomialStepSolver localSolver) {
-			super(localSolver.getIndexConstraint(), localSolver.getBody());
+			this(distSolver, localSolver.getIndexConstraint(), localSolver.getBody());
+		}
+		
+		public DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(DistributedQuantifierEliminationStepSolver distSolver, SingleVariableConstraint indexConstraint, Expression body) {
+			super(indexConstraint, body);
 			this.distSolver = distSolver;
 		}
 		

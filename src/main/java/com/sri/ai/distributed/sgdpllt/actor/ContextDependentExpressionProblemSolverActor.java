@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionProblem;
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution;
+import com.sri.ai.distributed.sgdpllt.util.TestSerialize;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
 import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
@@ -73,8 +74,8 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			final ActorRef subSolver1 = getContext().actorOf(props());
 			final ActorRef subSolver2 = getContext().actorOf(props());
 
-			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
-			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
+			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral())), _defaultTimeout);
+			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation())), _defaultTimeout);
 						
 			ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture1, _defaultTimeout.duration());
 			ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture2, _defaultTimeout.duration());
