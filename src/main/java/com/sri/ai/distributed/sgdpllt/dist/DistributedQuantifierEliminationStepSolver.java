@@ -28,7 +28,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	private static final long serialVersionUID = 1L;
 
 	// TODO - make configurable
-	private static final Timeout _defaultTimeout = new Timeout(60, TimeUnit.SECONDS);
+	private static final Timeout _defaultTimeout = new Timeout(3600, TimeUnit.SECONDS);
 
 	private transient ActorRefFactory actorRefFactory;
 	private transient LoggingAdapter localLog;

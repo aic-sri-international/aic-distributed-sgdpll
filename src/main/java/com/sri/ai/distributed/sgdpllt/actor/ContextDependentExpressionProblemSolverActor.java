@@ -15,15 +15,12 @@ import com.sri.ai.grinder.sgdpllt.library.controlflow.IfThenElse;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.actor.UntypedActorContext;
-import akka.dispatch.Mapper;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import scala.concurrent.Await;
-import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
 //TODO - this code as designed is blocking, which is non-optimal but required to work with the pre-existing logic in aic-expresso.
@@ -43,7 +40,7 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 	}
 	
 	// TODO - make configurable
-	private static final Timeout _defaultTimeout = new Timeout(60, TimeUnit.SECONDS); 
+	private static final Timeout _defaultTimeout = new Timeout(3600, TimeUnit.SECONDS); 
 
 	@Override
 	public void onReceive(Object message) throws Exception {
@@ -66,30 +63,39 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 		
 		Expression result;
 		ContextDependentProblemStepSolver.SolverStep<Expression> step = stepSolver.step(context);
+		
+		log.debug("CDEPS-solve:step result={}", step);
 		if (step.itDepends()) {	
 			final Expression splitOnLiteral = step.getLiteral();
 			ContextSplitting split = (ContextSplitting) step.getContextSplitting();
 			myAssert(() -> split.isUndefined(), () -> "Undefined " + ContextSplitting.class + " result value: " + split.getResult());
-			final ExecutionContext ec = getContext().dispatcher();
+
 			final ActorRef subSolver1 = getContext().actorOf(props());
 			final ActorRef subSolver2 = getContext().actorOf(props());
-			final UntypedActorContext actorContext = getContext();
-			
+
 			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), _defaultTimeout);
 			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), _defaultTimeout);
-			Future<Expression> resultFuture = subSolutionFuture1.zip(subSolutionFuture2).map(new Mapper<scala.Tuple2<Object, Object>, Expression>() {
-				@Override
-				public Expression apply(scala.Tuple2<Object, Object> zipped) {
-					ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) zipped._1;
-					ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) zipped._2;
-					Expression combinedSolution = IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
-					
-					return combinedSolution;
-				}
-			}, ec);
+						
+			ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture1, _defaultTimeout.duration());
+			ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture2, _defaultTimeout.duration());
 			
-			result = Await.result(resultFuture, _defaultTimeout.duration());
-			log.debug("CDEPS-solve itDepends:result={}", result);			
+			result =  IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
+
+// A Cleaner way to do the same thing above with one Await.result instead of 2.
+//			final ExecutionContext ec = getContext().dispatcher();
+//			Future<Expression> resultFuture = subSolutionFuture1.zip(subSolutionFuture2).map(new Mapper<scala.Tuple2<Object, Object>, Expression>() {
+//				@Override
+//				public Expression apply(scala.Tuple2<Object, Object> zipped) {
+//					ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) zipped._1;
+//					ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) zipped._2;
+//					Expression combinedSolution = IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
+//					
+//					return combinedSolution;
+//				}
+//			}, ec);
+//			
+//			result = Await.result(resultFuture, _defaultTimeout.duration());
+			log.debug("CDEPS-solve itDepends:result={}", result);	
 		}
 		else {				
 			result = step.getValue();
