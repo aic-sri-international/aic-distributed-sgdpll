@@ -20,8 +20,7 @@ public class QuantifierEliminationProblem extends ContextDependentExpressionProb
 	}
 	
 	public void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog) {
-		this.distributedQuantifierEliminationStepSolver.setActorRefFactory(actorRefFactory);
-		this.distributedQuantifierEliminationStepSolver.setLocalLog(actorLog);
+		this.distributedQuantifierEliminationStepSolver.setLocalActorInfo(actorRefFactory, actorLog);
 	}
 
 	@Override

@@ -21,13 +21,14 @@ public class DistributedTheory extends TheoryWrapper {
 
 	public DistributedTheory(Creator<Theory> theoryCreator, ActorRefFactory actorRefFactory, LoggingAdapter localLog) throws Exception {
 		super(theoryCreator);
-		this.actorRefFactory = actorRefFactory;
-		this.localLog = localLog;
+		setLocalActorInfo(actorRefFactory, localLog);
 	}
 	
-	// NOTE: This logic works under the assumption this method is only called at the top level (i.e. not nested) as it is dependent
-	// root 'contextDependentExpressionProblemSolverActor' to kick things off. If this assumption does not hold (i.e. referenced via nested calls)
-	// then things will not work as the logic would keep looping back to the root instance.
+	public void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog) {
+		this.actorRefFactory = actorRefFactory;
+		this.localLog = actorLog;
+	}
+	
 	@Override
 	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
 		QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver = (QuantifierEliminationStepSolver) super.getSingleVariableConstraintQuantifierEliminatorStepSolver(group, constraint, currentBody, context);

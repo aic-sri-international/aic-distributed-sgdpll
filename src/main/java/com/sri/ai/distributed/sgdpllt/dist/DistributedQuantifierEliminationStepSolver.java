@@ -48,20 +48,17 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 			QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver, ActorRefFactory actorRefFactory,
 			LoggingAdapter localLog) {
 		super(constructCreator(localQuantifierEliminatorStepSolver));
-		setActorRefFactory(actorRefFactory);
-		setLocalLog(localLog);
+		this.actorRefFactory = actorRefFactory;
+		this.localLog = localLog;
 
 		updateCreator();
 	}
-
-	public void setActorRefFactory(ActorRefFactory actorRefFactory) {
+	
+	public void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog) {
 		this.actorRefFactory = actorRefFactory;
+		this.localLog = actorLog;
 		//
 		updateCreator();
-	}
-
-	public void setLocalLog(LoggingAdapter localLog) {
-		this.localLog = localLog;
 	}
 
 	@Override
@@ -90,7 +87,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		ActorRef contextDependentExpressionProblemSolverActor = distSolver.actorRefFactory
 				.actorOf(ContextDependentExpressionProblemSolverActor.props());
 		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor,
-				TestSerialize.serializeMessage(quantifierEliminationProblem), _defaultTimeout);
+				TestSerialize.serializeMessage(quantifierEliminationProblem, distSolver.localLog), _defaultTimeout);
 		try {
 			// TODO - ideally, do not want to use blocking but have to for the
 			// time being to work with existing aic-expresso control flow.
