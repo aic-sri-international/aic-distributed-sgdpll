@@ -1,5 +1,6 @@
 package com.sri.ai.distributed.sgdpllt.actor;
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.ActorRef;
@@ -35,10 +36,14 @@ public class LocalActorTest {
 				log.debug("compute value={}", message);
 				Integer value = (Integer) message;
 				Integer result;
-				if (value == 6) {
-					for (long i = 0; i < 999999999L; i++) {
-						// Dummy compute
-					}
+				
+				// Simulate a 0 to 4 second computation
+				long spinTill = System.currentTimeMillis() + new Random().nextInt(4000);
+				while (System.currentTimeMillis() < spinTill) {
+					// Keep spinning.
+				}
+				
+				if (value == 8) {
 					result = value;
 				}
 				else {

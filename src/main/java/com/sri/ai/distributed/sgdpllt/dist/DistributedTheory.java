@@ -29,6 +29,19 @@ public class DistributedTheory extends TheoryWrapper {
 		this.localLog = actorLog;
 	}
 	
+	private boolean distributeSatisfiabilityStepSolvers = false;
+	@Override
+	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintSatisfiabilityStepSolver(SingleVariableConstraint constraint, Context context) {
+		if (!distributeSatisfiabilityStepSolvers) {
+			return super.getSingleVariableConstraintSatisfiabilityStepSolver(constraint, context);
+		}
+		ContextDependentExpressionProblemStepSolver localStepSolver = super.getSingleVariableConstraintSatisfiabilityStepSolver(constraint, context);
+		
+		DistributedSatisfiabilityOfSingleVariableStepSolver result = new DistributedSatisfiabilityOfSingleVariableStepSolver(localStepSolver, actorRefFactory, localLog);
+		
+		return result.getLocalWrappedContextDependentExpressionProblemStepSolver();
+	}
+	
 	@Override
 	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
 		QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver = (QuantifierEliminationStepSolver) super.getSingleVariableConstraintQuantifierEliminatorStepSolver(group, constraint, currentBody, context);
