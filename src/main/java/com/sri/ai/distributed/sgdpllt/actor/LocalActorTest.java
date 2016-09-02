@@ -38,7 +38,8 @@ public class LocalActorTest {
 				Integer result;
 				
 				// Simulate a 0 to 4 second computation
-				long spinTill = System.currentTimeMillis() + new Random().nextInt(4000);
+				long start    = System.currentTimeMillis();
+				long spinTill = start + new Random().nextInt(2000);
 				while (System.currentTimeMillis() < spinTill) {
 					// Keep spinning.
 				}
@@ -61,7 +62,7 @@ public class LocalActorTest {
 				
 				getSender().tell(result, getSelf());
 				
-				log.debug("compute result={}", result);
+				log.debug("compute result={} compute time={}ms.", result, spinTill-start);
 				
 				getContext().stop(getSelf());
 			}
