@@ -2,7 +2,7 @@ package com.sri.ai.distributed.sgdpllt.cli;
 
 import java.util.function.Supplier;
 
-import com.sri.ai.distributed.sgdpllt.dist.TheoryWithDistributedQuantifierEliminatorStepSolvers;
+import com.sri.ai.distributed.sgdpllt.dist.DistributedTheory;
 import com.sri.ai.grinder.sgdpllt.api.Theory;
 import com.sri.ai.grinder.sgdpllt.theory.compound.CompoundTheory;
 import com.sri.ai.grinder.sgdpllt.theory.differencearithmetic.DifferenceArithmeticTheory;
@@ -25,7 +25,7 @@ public class DistributedPRAiSE extends PRAiSE {
 			@Override
 			public Theory get() {
 				try {
-					return new TheoryWithDistributedQuantifierEliminatorStepSolvers(new DefaultTheoryCreator(), system, log);
+					return new DistributedTheory(new DefaultTheoryCreator(), system, log);
 				} catch (Exception ex) {
 					throw new RuntimeException(ex);
 				}

@@ -71,8 +71,8 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			ContextSplitting split = (ContextSplitting) step.getContextSplitting();
 			myAssert(() -> split.isUndefined(), () -> "Undefined " + ContextSplitting.class + " result value: " + split.getResult());
 
-			final ActorRef subSolver1 = getContext().actorOf(props());
-			final ActorRef subSolver2 = getContext().actorOf(props());
+			ActorRef subSolver1 = getContext().actorOf(props());
+			ActorRef subSolver2 = getContext().actorOf(props());
 
 			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral())), _defaultTimeout);
 			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation())), _defaultTimeout);

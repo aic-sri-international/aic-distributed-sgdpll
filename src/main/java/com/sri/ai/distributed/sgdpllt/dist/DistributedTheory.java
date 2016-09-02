@@ -13,13 +13,13 @@ import akka.actor.ActorRefFactory;
 import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 
-public class TheoryWithDistributedQuantifierEliminatorStepSolvers extends TheoryWrapper {
+public class DistributedTheory extends TheoryWrapper {
 	private static final long serialVersionUID = 1L;
 	
 	private transient ActorRefFactory actorRefFactory;
 	private transient LoggingAdapter localLog;
 
-	public TheoryWithDistributedQuantifierEliminatorStepSolvers(Creator<Theory> theoryCreator, ActorRefFactory actorRefFactory, LoggingAdapter localLog) throws Exception {
+	public DistributedTheory(Creator<Theory> theoryCreator, ActorRefFactory actorRefFactory, LoggingAdapter localLog) throws Exception {
 		super(theoryCreator);
 		this.actorRefFactory = actorRefFactory;
 		this.localLog = localLog;
