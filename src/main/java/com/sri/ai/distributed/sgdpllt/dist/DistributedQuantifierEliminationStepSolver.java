@@ -74,7 +74,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	protected void updateCreator() {
 		// Ensure the appropriate distributed solver is used.
 		((CreatorForDistributedQuantifierEliminationStepSolver) this
-				.getQuantifierEliminationStepSolverCreator()).distSolver = this;
+				.getContextDependentExpressionProblemStepSolverCreator()).distSolver = this;
 	}
 
 	public static Expression solve(Context context, String solverType,

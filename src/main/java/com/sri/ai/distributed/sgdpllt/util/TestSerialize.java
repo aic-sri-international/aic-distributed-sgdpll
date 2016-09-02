@@ -10,6 +10,7 @@ import akka.event.LoggingAdapter;
 public class TestSerialize {
 
 	public static final boolean SERIALIZE_ALL_MESSAGES = true;
+	public static final boolean LOG_SERIALIZED_MESSAGE_SIZES = false;
 	
 	public static Object serializeMessage(Object msg, LoggingAdapter log) {
 		Object result = null;
@@ -23,7 +24,9 @@ public class TestSerialize {
 		        
 		        byte[] msgBytes = bos.toByteArray();
 		        
-		        log.debug("Serialize {}, #bytes={}", msg.getClass().getSimpleName(), msgBytes.length);
+		        if (LOG_SERIALIZED_MESSAGE_SIZES) {
+		        	log.debug("Serialize {}, #bytes={}", msg.getClass().getSimpleName(), msgBytes.length);
+		        }
 		        
 		        ByteArrayInputStream bis = new ByteArrayInputStream(msgBytes);
 		        ObjectInputStream ois = new ObjectInputStream(bis);

@@ -2,6 +2,7 @@ package com.sri.ai.distributed.sgdpllt.message;
 
 import java.io.Serializable;
 
+import com.sri.ai.distributed.sgdpllt.dist.DistributedTheory;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
 import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
@@ -22,7 +23,10 @@ public abstract class ContextDependentExpressionProblem implements Serializable 
 		this.serializableContext = new SerializableContext(context);
 	}
 	
-	public abstract void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog);	
+	public void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog) {
+		((DistributedTheory)getLocalContext().getTheory()).setLocalActorInfo(actorRefFactory, actorLog);
+	}
+	
 	public abstract ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
 	public abstract ContextDependentProblemStepSolver<Expression> getLocalStepSolver();
 	
