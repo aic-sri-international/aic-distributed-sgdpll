@@ -29,6 +29,7 @@ public class DistributedTheory extends TheoryWrapper {
 		this.localLog = actorLog;
 	}
 	
+	// NOTE: The distribution overhead is too high for this step solver (observed a factor of 40 slow down and little parallelization actually occurring).
 	private boolean distributeSatisfiabilityStepSolvers = false;
 	@Override
 	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintSatisfiabilityStepSolver(SingleVariableConstraint constraint, Context context) {

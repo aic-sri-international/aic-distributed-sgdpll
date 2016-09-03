@@ -1,5 +1,6 @@
 package com.sri.ai.distributed.sgdpllt.dist;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import com.sri.ai.distributed.sgdpllt.actor.ContextDependentExpressionProblemSolverActor;
@@ -20,9 +21,11 @@ import com.sri.ai.grinder.sgdpllt.group.Sum;
 import com.sri.ai.grinder.sgdpllt.group.SumProduct;
 import com.sri.ai.grinder.sgdpllt.theory.differencearithmetic.SummationOnDifferenceArithmeticAndPolynomialStepSolver;
 import com.sri.ai.grinder.sgdpllt.theory.linearrealarithmetic.SummationOnLinearRealArithmeticAndPolynomialStepSolver;
+import com.sri.ai.util.base.Pair;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorRefFactory;
+import akka.dispatch.Futures;
 import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
@@ -98,6 +101,32 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 			throw new RuntimeException(ex);
 		}
 
+		return result;
+	}
+	
+	public static Pair<Expression, Expression> solveSubProblems(final AbstractQuantifierEliminationStepSolver subProblem1, final AbstractQuantifierEliminationStepSolver subProblem2, final Context context, DistributedQuantifierEliminationStepSolver distSolver) {
+		Future<Expression> subSolution1Future = Futures.future(new Callable<Expression>() {
+			public Expression call() {
+				return subProblem1.solve(context);
+			}
+		}, distSolver.actorRefFactory.dispatcher());
+		Future<Expression> subSolution2Future = Futures.future(new Callable<Expression>() {
+			public Expression call() {
+				return subProblem2.solve(context);
+			}
+		}, distSolver.actorRefFactory.dispatcher());
+		
+		Pair<Expression, Expression> result;
+		try {
+			Expression subSolution1 = Await.result(subSolution1Future,  _defaultTimeout.duration());
+			Expression subSolution2 = Await.result(subSolution2Future,  _defaultTimeout.duration());
+			
+			result = new Pair<>(subSolution1, subSolution2);
+		}
+		catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+		
 		return result;
 	}
 
@@ -211,6 +240,13 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(this, distSolver.actorRefFactory, distSolver.localLog);
 			return (DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver) cloneDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
+		
+		@Override
+		protected Expression solveSubProblems(AbstractQuantifierEliminationStepSolver subProblem1, AbstractQuantifierEliminationStepSolver subProblem2, Context context) {
+			Pair<Expression, Expression> solutions = DistributedQuantifierEliminationStepSolver.solveSubProblems(subProblem1, subProblem2, context, distSolver);
+			Expression result = combine(solutions.first, solutions.second, context);
+			return result;
+		}
 	}
 	
 	public static class CreatorForSummationOnDifferenceArithmeticAndPolynomialStepSolver
@@ -255,6 +291,13 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 			DistributedQuantifierEliminationStepSolver newDistSolver = new DistributedQuantifierEliminationStepSolver(super.makeWithNewIndexConstraint(newIndexConstraint), distSolver.actorRefFactory, distSolver.localLog);
 			return (DistSummationOnDifferenceArithmeticAndPolynomialStepSolver) newDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
+		
+		@Override
+		protected Expression solveSubProblems(AbstractQuantifierEliminationStepSolver subProblem1, AbstractQuantifierEliminationStepSolver subProblem2, Context context) {
+			Pair<Expression, Expression> solutions = DistributedQuantifierEliminationStepSolver.solveSubProblems(subProblem1, subProblem2, context, distSolver);
+			Expression result = combine(solutions.first, solutions.second, context);
+			return result;
+		}
 	}
 
 	public static class CreatorSummationOnLinearRealArithmeticAndPolynomialStepSolver
@@ -298,6 +341,13 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		protected AbstractQuantifierEliminationStepSolver makeWithNewIndexConstraint(SingleVariableConstraint newIndexConstraint) {
 			DistributedQuantifierEliminationStepSolver newDistSolver = new DistributedQuantifierEliminationStepSolver(super.makeWithNewIndexConstraint(newIndexConstraint), distSolver.actorRefFactory, distSolver.localLog);
 			return (DistSummationOnLinearRealArithmeticAndPolynomialStepSolver) newDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
+		}
+		
+		@Override
+		protected Expression solveSubProblems(AbstractQuantifierEliminationStepSolver subProblem1, AbstractQuantifierEliminationStepSolver subProblem2, Context context) {
+			Pair<Expression, Expression> solutions = DistributedQuantifierEliminationStepSolver.solveSubProblems(subProblem1, subProblem2, context, distSolver);
+			Expression result = combine(solutions.first, solutions.second, context);
+			return result;
 		}
 	}
 }
