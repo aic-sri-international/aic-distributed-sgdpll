@@ -1,10 +1,9 @@
 package com.sri.ai.distributed.sgdpllt.dist;
 
-import java.util.concurrent.TimeUnit;
-
 import com.sri.ai.distributed.sgdpllt.actor.ContextDependentExpressionProblemSolverActor;
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution;
 import com.sri.ai.distributed.sgdpllt.message.SatisfiabilityProblem;
+import com.sri.ai.distributed.sgdpllt.util.AkkaUtil;
 import com.sri.ai.distributed.sgdpllt.util.TestSerialize;
 import com.sri.ai.distributed.sgdpllt.wrapper.ContextDependentExpressionProblemStepSolverWrapper;
 import com.sri.ai.expresso.api.Expression;
@@ -25,16 +24,12 @@ import akka.actor.ActorRefFactory;
 import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
-import akka.util.Timeout;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 
 public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		extends ContextDependentExpressionProblemStepSolverWrapper {
 	private static final long serialVersionUID = 1L;
-
-	// TODO - make configurable
-	private static final Timeout _defaultTimeout = new Timeout(3600, TimeUnit.SECONDS);
 
 	private transient ActorRefFactory actorRefFactory;
 	private transient LoggingAdapter localLog;
@@ -88,12 +83,12 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		ActorRef contextDependentExpressionProblemSolverActor = distSolver.actorRefFactory
 				.actorOf(ContextDependentExpressionProblemSolverActor.props());
 		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor,
-				TestSerialize.serializeMessage(satisfiabilityProblem, distSolver.localLog), _defaultTimeout);
+				TestSerialize.serializeMessage(satisfiabilityProblem, distSolver.localLog), AkkaUtil.getDefaultTimeout());
 		try {
 			// TODO - ideally, do not want to use blocking but have to for the
 			// time being to work with existing aic-expresso control flow.
 			ContextDependentExpressionSolution solution = (ContextDependentExpressionSolution) Await
-					.result(futureResult, _defaultTimeout.duration());
+					.result(futureResult, AkkaUtil.getDefaultTimeout().duration());
 			result = solution.getLocalValue();
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);

@@ -2,10 +2,9 @@ package com.sri.ai.distributed.sgdpllt.actor;
 
 import static com.sri.ai.util.Util.myAssert;
 
-import java.util.concurrent.TimeUnit;
-
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionProblem;
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution;
+import com.sri.ai.distributed.sgdpllt.util.AkkaUtil;
 import com.sri.ai.distributed.sgdpllt.util.TestSerialize;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
@@ -20,7 +19,6 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
-import akka.util.Timeout;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 
@@ -39,9 +37,6 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			}
 		});
 	}
-	
-	// TODO - make configurable
-	private static final Timeout _defaultTimeout = new Timeout(3600, TimeUnit.SECONDS); 
 
 	@Override
 	public void onReceive(Object message) throws Exception {
@@ -74,11 +69,11 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			ActorRef subSolver1 = getContext().actorOf(props());
 			ActorRef subSolver2 = getContext().actorOf(props());
 
-			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), log), _defaultTimeout);
-			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), log), _defaultTimeout);
+			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), log), AkkaUtil.getDefaultTimeout());
+			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), log), AkkaUtil.getDefaultTimeout());
 						
-			ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture1, _defaultTimeout.duration());
-			ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture2, _defaultTimeout.duration());
+			ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture1, AkkaUtil.getDefaultTimeout().duration());
+			ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture2, AkkaUtil.getDefaultTimeout().duration());
 			
 			result =  IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
 

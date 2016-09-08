@@ -1,11 +1,11 @@
 package com.sri.ai.distributed.sgdpllt.dist;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import com.sri.ai.distributed.sgdpllt.actor.ContextDependentExpressionProblemSolverActor;
 import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution;
 import com.sri.ai.distributed.sgdpllt.message.QuantifierEliminationProblem;
+import com.sri.ai.distributed.sgdpllt.util.AkkaUtil;
 import com.sri.ai.distributed.sgdpllt.util.TestSerialize;
 import com.sri.ai.distributed.sgdpllt.wrapper.QuantifierEliminationStepSolverWrapper;
 import com.sri.ai.expresso.api.Expression;
@@ -29,15 +29,11 @@ import akka.dispatch.Futures;
 import akka.event.LoggingAdapter;
 import akka.japi.Creator;
 import akka.pattern.Patterns;
-import akka.util.Timeout;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 
 public class DistributedQuantifierEliminationStepSolver extends QuantifierEliminationStepSolverWrapper {
 	private static final long serialVersionUID = 1L;
-
-	// TODO - make configurable
-	private static final Timeout _defaultTimeout = new Timeout(3600, TimeUnit.SECONDS);
 
 	private transient ActorRefFactory actorRefFactory;
 	private transient LoggingAdapter localLog;
@@ -90,12 +86,12 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		ActorRef contextDependentExpressionProblemSolverActor = distSolver.actorRefFactory
 				.actorOf(ContextDependentExpressionProblemSolverActor.props());
 		Future<Object> futureResult = Patterns.ask(contextDependentExpressionProblemSolverActor,
-				TestSerialize.serializeMessage(quantifierEliminationProblem, distSolver.localLog), _defaultTimeout);
+				TestSerialize.serializeMessage(quantifierEliminationProblem, distSolver.localLog), AkkaUtil.getDefaultTimeout());
 		try {
 			// TODO - ideally, do not want to use blocking but have to for the
 			// time being to work with existing aic-expresso control flow.
 			ContextDependentExpressionSolution solution = (ContextDependentExpressionSolution) Await
-					.result(futureResult, _defaultTimeout.duration());
+					.result(futureResult, AkkaUtil.getDefaultTimeout().duration());
 			result = solution.getLocalValue();
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
@@ -118,8 +114,8 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		
 		Pair<Expression, Expression> result;
 		try {
-			Expression subSolution1 = Await.result(subSolution1Future,  _defaultTimeout.duration());
-			Expression subSolution2 = Await.result(subSolution2Future,  _defaultTimeout.duration());
+			Expression subSolution1 = Await.result(subSolution1Future,  AkkaUtil.getDefaultTimeout().duration());
+			Expression subSolution2 = Await.result(subSolution2Future,  AkkaUtil.getDefaultTimeout().duration());
 			
 			result = new Pair<>(subSolution1, subSolution2);
 		}
