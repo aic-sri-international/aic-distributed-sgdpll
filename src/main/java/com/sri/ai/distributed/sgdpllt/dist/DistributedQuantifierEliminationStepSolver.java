@@ -203,27 +203,15 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	public static class CreatorForQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver
 			extends CreatorForDistributedQuantifierEliminationStepSolver {
 		private static final long serialVersionUID = 1L;
-		private transient DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver localSolver;
 		
 		public CreatorForQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(
 				QuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver localSolver) {
 			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
-			if (localSolver instanceof DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver) {
-				this.localSolver = (DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver) localSolver;
-			}
 		}
 
 		@Override
 		public QuantifierEliminationStepSolver create() throws Exception {
-			QuantifierEliminationStepSolver result;
-			if (this.localSolver != null) {	
-				result = this.localSolver;
-				this.localSolver = null;
-			}
-			else {				
-				result = new DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(this.distSolver, groupCreator.create(), indexConstraint, body);
-			}
-			return result;
+			return new DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver(this.distSolver, groupCreator.create(), indexConstraint, body);
 		}
 	}
 	
@@ -245,7 +233,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		
 		@Override
 		public DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver clone() {
-			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(super.clone(), distSolver.actorRefFactory, distSolver.localLog);
+			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(this, distSolver.actorRefFactory, distSolver.localLog);
 			return (DistQuantifierEliminationOnBodyInWhichIndexOnlyOccursInsideLiteralsStepSolver) cloneDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
 		
@@ -260,27 +248,15 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	public static class CreatorForSummationOnDifferenceArithmeticAndPolynomialStepSolver
 			extends CreatorForDistributedQuantifierEliminationStepSolver {
 		private static final long serialVersionUID = 1L;
-		private transient DistSummationOnDifferenceArithmeticAndPolynomialStepSolver localSolver;
 		
 		public CreatorForSummationOnDifferenceArithmeticAndPolynomialStepSolver(
 				SummationOnDifferenceArithmeticAndPolynomialStepSolver localSolver) {
 			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
-			if (localSolver instanceof DistSummationOnDifferenceArithmeticAndPolynomialStepSolver) {
-				this.localSolver = (DistSummationOnDifferenceArithmeticAndPolynomialStepSolver) localSolver;
-			}
 		}
 
 		@Override
 		public QuantifierEliminationStepSolver create() {
-			QuantifierEliminationStepSolver result;
-			if (this.localSolver != null) {				
-				result = this.localSolver;
-				this.localSolver = null;
-			}
-			else {
-				result = new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, indexConstraint, body));
-			}
-			return result;
+			return new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, new DistSummationOnDifferenceArithmeticAndPolynomialStepSolver(distSolver, indexConstraint, body));
 		}
 	}
 	
@@ -302,7 +278,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		
 		@Override
 		public DistSummationOnDifferenceArithmeticAndPolynomialStepSolver clone() {
-			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(super.clone(), distSolver.actorRefFactory, distSolver.localLog);
+			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(this, distSolver.actorRefFactory, distSolver.localLog);
 			return (DistSummationOnDifferenceArithmeticAndPolynomialStepSolver) cloneDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
 		
@@ -323,27 +299,15 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	public static class CreatorSummationOnLinearRealArithmeticAndPolynomialStepSolver
 			extends CreatorForDistributedQuantifierEliminationStepSolver {
 		private static final long serialVersionUID = 1L;
-		private transient DistSummationOnLinearRealArithmeticAndPolynomialStepSolver localSolver;
 
 		public CreatorSummationOnLinearRealArithmeticAndPolynomialStepSolver(
 				SummationOnLinearRealArithmeticAndPolynomialStepSolver localSolver) {
 			super(localSolver.getGroup(), localSolver.getIndexConstraint(), localSolver.getBody());
-			if (localSolver instanceof DistSummationOnLinearRealArithmeticAndPolynomialStepSolver) {
-				this.localSolver = (DistSummationOnLinearRealArithmeticAndPolynomialStepSolver) localSolver;
-			}
 		}
 
 		@Override
 		public QuantifierEliminationStepSolver create() {
-			QuantifierEliminationStepSolver result;
-			if (this.localSolver != null) {				
-				result = this.localSolver;
-				this.localSolver = null;
-			}
-			else {
-				result = new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(this.distSolver, new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(distSolver, indexConstraint, body));
-			}
-			return result;
+			return new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(this.distSolver, new DistSummationOnLinearRealArithmeticAndPolynomialStepSolver(distSolver, indexConstraint, body));
 		}
 	}	
 	
@@ -365,7 +329,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		
 		@Override
 		public DistSummationOnLinearRealArithmeticAndPolynomialStepSolver clone() {
-			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(super.clone(), distSolver.actorRefFactory, distSolver.localLog);
+			DistributedQuantifierEliminationStepSolver cloneDistSolver = new DistributedQuantifierEliminationStepSolver(this, distSolver.actorRefFactory, distSolver.localLog);
 			return (DistSummationOnLinearRealArithmeticAndPolynomialStepSolver) cloneDistSolver.getLocalWrappedQuantifierEliminationStepSolver();
 		}
 		
