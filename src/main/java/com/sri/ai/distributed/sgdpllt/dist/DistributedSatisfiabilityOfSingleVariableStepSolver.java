@@ -127,7 +127,7 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		protected SingleVariableConstraint constraint;
 
 		public CreatorForDistributedSatisfiabilityOfSingleVariableStepSolver(SingleVariableConstraint constraint) {
-			this.constraint = constraint;
+			this.constraint = constraint.clone();
 		}
 	}
 	

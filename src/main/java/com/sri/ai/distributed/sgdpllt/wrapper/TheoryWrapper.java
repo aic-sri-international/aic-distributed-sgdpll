@@ -124,6 +124,18 @@ public class TheoryWrapper implements Theory, Serializable {
 		return getLocalWrappedTheory().isVariable(expression, context);
 	}
 	
+	@Override
+	public Theory clone() {
+		Theory result;
+		try {
+			result = (Theory) super.clone();
+		}
+		catch (CloneNotSupportedException cnse) {
+			throw new RuntimeException(cnse);
+		}
+		return result;
+	}
+	
 	////////////AUTOMATIC TESTING
 	@Override
 	public void setVariableNamesAndTypesForTesting(Map<String, Type> variableNamesForTesting) {

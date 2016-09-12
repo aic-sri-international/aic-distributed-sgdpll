@@ -20,7 +20,8 @@ public abstract class ContextDependentExpressionProblem implements Serializable 
 	
 	
 	public ContextDependentExpressionProblem(Context context) {
-		this.serializableContext = new SerializableContext(context);
+		// NOTE: Ensure cloned so that theory is also cloned properly
+		this.serializableContext = new SerializableContext(context.clone());
 	}
 	
 	public void setLocalActorInfo(ActorRefFactory actorRefFactory, LoggingAdapter actorLog) {
