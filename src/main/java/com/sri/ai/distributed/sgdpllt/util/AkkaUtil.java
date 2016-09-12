@@ -6,7 +6,7 @@ import akka.util.Timeout;
 
 public class AkkaUtil {
 	/// TODO - make configurable
-	private static final Timeout _defaultTimeout = new Timeout(3600, TimeUnit.SECONDS);
+	private static final Timeout _defaultTimeout = new Timeout(24, TimeUnit.HOURS);
 	
 	public static Timeout getDefaultTimeout() {
 		return _defaultTimeout;

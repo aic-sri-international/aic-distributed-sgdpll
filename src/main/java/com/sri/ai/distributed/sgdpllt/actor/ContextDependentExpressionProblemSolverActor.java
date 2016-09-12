@@ -22,8 +22,8 @@ import akka.pattern.Patterns;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 
-//TODO - this code as designed is blocking, which is non-optimal but required to work with the pre-existing logic in aic-expresso.
-//Ideally, messages should be sent and received asynchronously throughout the call hierarchy.	
+// TODO - this code as designed is blocking, which is non-optimal but required to work with the pre-existing logic in aic-expresso.
+// Ideally, messages should be sent and received asynchronously throughout the call hierarchy.	
 public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 	
 	LoggingAdapter log = Logging.getLogger(getContext().system(), this);
@@ -72,25 +72,14 @@ public class ContextDependentExpressionProblemSolverActor extends UntypedActor {
 			Future<Object> subSolutionFuture1 = Patterns.ask(subSolver1, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsTrue(), split.getConstraintAndLiteral()), log), AkkaUtil.getDefaultTimeout());
 			Future<Object> subSolutionFuture2 = Patterns.ask(subSolver2, TestSerialize.serializeMessage(problem.createSubProblem(step.getStepSolverForWhenLiteralIsFalse(), split.getConstraintAndLiteralNegation()), log), AkkaUtil.getDefaultTimeout());
 						
+			// NOTE - can alternatively use subSolutionFuture1.zip(subSolutionFuture2).map(...) so only one Await.result call required.
+			// However, as this is prototype code and we don't want to use Await.result at all in the final version we will leave as is
+			// for the time being.
 			ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture1, AkkaUtil.getDefaultTimeout().duration());
 			ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) Await.result(subSolutionFuture2, AkkaUtil.getDefaultTimeout().duration());
 			
 			result =  IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
 
-// A Cleaner way to do the same thing above with one Await.result instead of 2.
-//			final ExecutionContext ec = getContext().dispatcher();
-//			Future<Expression> resultFuture = subSolutionFuture1.zip(subSolutionFuture2).map(new Mapper<scala.Tuple2<Object, Object>, Expression>() {
-//				@Override
-//				public Expression apply(scala.Tuple2<Object, Object> zipped) {
-//					ContextDependentExpressionSolution subSolution1 = (ContextDependentExpressionSolution) zipped._1;
-//					ContextDependentExpressionSolution subSolution2 = (ContextDependentExpressionSolution) zipped._2;
-//					Expression combinedSolution = IfThenElse.make(splitOnLiteral, subSolution1.getLocalValue(), subSolution2.getLocalValue(), true);
-//					
-//					return combinedSolution;
-//				}
-//			}, ec);
-//			
-//			result = Await.result(resultFuture, _defaultTimeout.duration());
 			log.debug("CDEPS-solve itDepends:result={}", result);	
 		}
 		else {				
