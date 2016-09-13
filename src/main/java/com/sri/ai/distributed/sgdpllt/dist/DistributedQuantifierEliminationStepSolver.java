@@ -41,6 +41,8 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 	public DistributedQuantifierEliminationStepSolver(
 			QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver) {
 		super(constructCreator(localQuantifierEliminatorStepSolver));
+		
+		updateCreator();
 	}
 
 	public DistributedQuantifierEliminationStepSolver(
@@ -220,6 +222,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		public QuantifierEliminationStepSolver create() throws Exception {
 			QuantifierEliminationStepSolver result;
 			if (this.localSolver != null) {	
+				this.localSolver.distSolver = this.distSolver;
 				result = this.localSolver;
 				this.localSolver = null;
 			}
@@ -277,6 +280,7 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		public QuantifierEliminationStepSolver create() {
 			QuantifierEliminationStepSolver result;
 			if (this.localSolver != null) {				
+				this.localSolver.distSolver = this.distSolver;
 				result = this.localSolver;
 				this.localSolver = null;
 			}
@@ -339,7 +343,8 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		@Override
 		public QuantifierEliminationStepSolver create() {
 			QuantifierEliminationStepSolver result;
-			if (this.localSolver != null) {				
+			if (this.localSolver != null) {		
+				this.localSolver.distSolver = this.distSolver;
 				result = this.localSolver;
 				this.localSolver = null;
 			}
