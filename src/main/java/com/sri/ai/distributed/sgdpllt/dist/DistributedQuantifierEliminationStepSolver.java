@@ -59,10 +59,9 @@ public class DistributedQuantifierEliminationStepSolver extends QuantifierElimin
 		this.actorRefFactory = actorRefFactory;
 		this.localLog = actorLog;
 		
-		((DistributedTheory)getTheory()).setLocalActorInfo(actorRefFactory, actorLog);
-		
-		//
 		updateCreator();
+		
+		((DistributedTheory)getTheory()).setLocalActorInfo(actorRefFactory, actorLog);
 	}
 
 	@Override
