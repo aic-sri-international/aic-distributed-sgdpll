@@ -3,7 +3,7 @@ package com.sri.ai.distributed.sgdpllt.message;
 import com.sri.ai.distributed.sgdpllt.dist.DistributedQuantifierEliminationStepSolver;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
-import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
+import com.sri.ai.grinder.sgdpllt.api.StepSolver;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
 
 import akka.actor.ActorRefFactory;
@@ -26,7 +26,7 @@ public class QuantifierEliminationProblem extends ContextDependentExpressionProb
 	}
 
 	@Override
-	public ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> localStepSolver, Context localContext) {
+	public ContextDependentExpressionProblem createSubProblem(StepSolver<Expression> localStepSolver, Context localContext) {
 		if (localStepSolver instanceof QuantifierEliminationStepSolver) {
 			return new QuantifierEliminationProblem(localContext, new DistributedQuantifierEliminationStepSolver((QuantifierEliminationStepSolver) localStepSolver));
 		}
@@ -36,7 +36,7 @@ public class QuantifierEliminationProblem extends ContextDependentExpressionProb
 	}
 	
 	@Override
-	public ContextDependentProblemStepSolver<Expression> getLocalStepSolver() {
+	public StepSolver<Expression> getLocalStepSolver() {
 		// This object knows how to grant access to the local step solver (i.e. it wraps it).
 		return distributedQuantifierEliminationStepSolver.getLocalWrappedQuantifierEliminationStepSolver();
 	}

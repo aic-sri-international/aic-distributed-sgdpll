@@ -10,7 +10,7 @@ import com.sri.ai.grinder.sgdpllt.group.AssociativeCommutativeGroup;
 
 import akka.japi.Creator;
 
-public class QuantifierEliminationStepSolverWrapper extends ContextDependentExpressionProblemStepSolverWrapper implements QuantifierEliminationStepSolver {
+public class QuantifierEliminationStepSolverWrapper extends ExpressionStepSolverWrapper implements QuantifierEliminationStepSolver {
 	private static final long serialVersionUID = 1L;
 
 	public QuantifierEliminationStepSolverWrapper(

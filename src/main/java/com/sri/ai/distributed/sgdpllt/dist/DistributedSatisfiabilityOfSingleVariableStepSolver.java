@@ -5,10 +5,10 @@ import com.sri.ai.distributed.sgdpllt.message.ContextDependentExpressionSolution
 import com.sri.ai.distributed.sgdpllt.message.SatisfiabilityProblem;
 import com.sri.ai.distributed.sgdpllt.util.AkkaUtil;
 import com.sri.ai.distributed.sgdpllt.util.TestSerialize;
-import com.sri.ai.distributed.sgdpllt.wrapper.ContextDependentExpressionProblemStepSolverWrapper;
+import com.sri.ai.distributed.sgdpllt.wrapper.ExpressionStepSolverWrapper;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
-import com.sri.ai.grinder.sgdpllt.api.ContextDependentExpressionProblemStepSolver;
+import com.sri.ai.grinder.sgdpllt.api.ExpressionStepSolver;
 import com.sri.ai.grinder.sgdpllt.api.SingleVariableConstraint;
 import com.sri.ai.grinder.sgdpllt.theory.differencearithmetic.SatisfiabilityOfSingleVariableDifferenceArithmeticConstraintStepSolver;
 import com.sri.ai.grinder.sgdpllt.theory.differencearithmetic.SingleVariableDifferenceArithmeticConstraint;
@@ -28,19 +28,19 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 
 public class DistributedSatisfiabilityOfSingleVariableStepSolver
-		extends ContextDependentExpressionProblemStepSolverWrapper {
+		extends ExpressionStepSolverWrapper {
 	private static final long serialVersionUID = 1L;
 
 	private transient ActorRefFactory actorRefFactory;
 	private transient LoggingAdapter localLog;
 
 	public DistributedSatisfiabilityOfSingleVariableStepSolver(
-			ContextDependentExpressionProblemStepSolver localSatisfiabilityStepSolver) {
+			ExpressionStepSolver localSatisfiabilityStepSolver) {
 		super(constructCreator(localSatisfiabilityStepSolver));
 	}
 
 	public DistributedSatisfiabilityOfSingleVariableStepSolver(
-			ContextDependentExpressionProblemStepSolver localSatisfiabilityStepSolver, ActorRefFactory actorRefFactory,
+			ExpressionStepSolver localSatisfiabilityStepSolver, ActorRefFactory actorRefFactory,
 			LoggingAdapter localLog) {
 		super(constructCreator(localSatisfiabilityStepSolver));
 		this.actorRefFactory = actorRefFactory;
@@ -97,8 +97,8 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		return result;
 	}
 
-	public static Creator<ContextDependentExpressionProblemStepSolver> constructCreator(
-			final ContextDependentExpressionProblemStepSolver localSatisfiabilityStepSolver) {
+	public static Creator<ExpressionStepSolver> constructCreator(
+			final ExpressionStepSolver localSatisfiabilityStepSolver) {
 
 		if (localSatisfiabilityStepSolver instanceof SatisfiabilityOfSingleVariableDifferenceArithmeticConstraintStepSolver) {
 			return new CreatorForSatisfiabilityOfSingleVariableDifferenceArithmeticConstraintStepSolver(
@@ -119,7 +119,7 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 	}
 
 	public abstract static class CreatorForDistributedSatisfiabilityOfSingleVariableStepSolver
-			implements Creator<ContextDependentExpressionProblemStepSolver> {
+			implements Creator<ExpressionStepSolver> {
 		private static final long serialVersionUID = 1L;
 
 		public transient DistributedSatisfiabilityOfSingleVariableStepSolver distSolver;
@@ -144,7 +144,7 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		}
 		
 		@Override
-		public ContextDependentExpressionProblemStepSolver create() throws Exception {
+		public ExpressionStepSolver create() throws Exception {
 			return new DistSatisfiabilityOfSingleVariableDifferenceArithmeticConstraintStepSolver(this.distSolver, constraint);
 		}
 	}
@@ -182,7 +182,7 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		}
 		
 		@Override
-		public ContextDependentExpressionProblemStepSolver create() throws Exception {
+		public ExpressionStepSolver create() throws Exception {
 			return new DistSatisfiabilityOfSingleVariableEqualityConstraintStepSolver(this.distSolver, constraint);
 		}
 	}
@@ -220,7 +220,7 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		}
 		
 		@Override
-		public ContextDependentExpressionProblemStepSolver create() throws Exception {
+		public ExpressionStepSolver create() throws Exception {
 			return new DistSatisfiabilityOfSingleVariableLinearRealArithmeticConstraintStepSolver(this.distSolver, constraint);
 		}
 	}
@@ -258,7 +258,7 @@ public class DistributedSatisfiabilityOfSingleVariableStepSolver
 		}
 		
 		@Override
-		public ContextDependentExpressionProblemStepSolver create() throws Exception {
+		public ExpressionStepSolver create() throws Exception {
 			return new DistSatisfiabilityOfSingleVariablePropositionalConstraintStepSolver(this.distSolver, constraint);
 		}
 	}

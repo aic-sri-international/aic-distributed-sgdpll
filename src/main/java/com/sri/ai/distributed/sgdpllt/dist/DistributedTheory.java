@@ -3,7 +3,7 @@ package com.sri.ai.distributed.sgdpllt.dist;
 import com.sri.ai.distributed.sgdpllt.wrapper.TheoryWrapper;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
-import com.sri.ai.grinder.sgdpllt.api.ContextDependentExpressionProblemStepSolver;
+import com.sri.ai.grinder.sgdpllt.api.ExpressionStepSolver;
 import com.sri.ai.grinder.sgdpllt.api.SingleVariableConstraint;
 import com.sri.ai.grinder.sgdpllt.api.Theory;
 import com.sri.ai.grinder.sgdpllt.core.solver.QuantifierEliminationStepSolver;
@@ -32,11 +32,11 @@ public class DistributedTheory extends TheoryWrapper {
 	// NOTE: The distribution overhead is too high for this step solver (observed a factor of 40 slow down and little parallelization actually occurring).
 	private boolean distributeSatisfiabilityStepSolvers = false;
 	@Override
-	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintSatisfiabilityStepSolver(SingleVariableConstraint constraint, Context context) {
+	public ExpressionStepSolver getSingleVariableConstraintSatisfiabilityStepSolver(SingleVariableConstraint constraint, Context context) {
 		if (!distributeSatisfiabilityStepSolvers) {
 			return super.getSingleVariableConstraintSatisfiabilityStepSolver(constraint, context);
 		}
-		ContextDependentExpressionProblemStepSolver localStepSolver = super.getSingleVariableConstraintSatisfiabilityStepSolver(constraint, context);
+		ExpressionStepSolver localStepSolver = super.getSingleVariableConstraintSatisfiabilityStepSolver(constraint, context);
 		
 		DistributedSatisfiabilityOfSingleVariableStepSolver result = new DistributedSatisfiabilityOfSingleVariableStepSolver(localStepSolver, actorRefFactory, localLog);
 		
@@ -44,7 +44,7 @@ public class DistributedTheory extends TheoryWrapper {
 	}
 	
 	@Override
-	public ContextDependentExpressionProblemStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
+	public ExpressionStepSolver getSingleVariableConstraintQuantifierEliminatorStepSolver(AssociativeCommutativeGroup group, SingleVariableConstraint constraint, Expression currentBody, Context context) {
 		QuantifierEliminationStepSolver localQuantifierEliminatorStepSolver = (QuantifierEliminationStepSolver) super.getSingleVariableConstraintQuantifierEliminatorStepSolver(group, constraint, currentBody, context);
 
 		DistributedQuantifierEliminationStepSolver result = new DistributedQuantifierEliminationStepSolver(localQuantifierEliminatorStepSolver, actorRefFactory, localLog);

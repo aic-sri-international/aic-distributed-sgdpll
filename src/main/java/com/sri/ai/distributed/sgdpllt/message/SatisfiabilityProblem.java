@@ -3,8 +3,8 @@ package com.sri.ai.distributed.sgdpllt.message;
 import com.sri.ai.distributed.sgdpllt.dist.DistributedSatisfiabilityOfSingleVariableStepSolver;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
-import com.sri.ai.grinder.sgdpllt.api.ContextDependentExpressionProblemStepSolver;
-import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
+import com.sri.ai.grinder.sgdpllt.api.ExpressionStepSolver;
+import com.sri.ai.grinder.sgdpllt.api.StepSolver;
 
 import akka.actor.ActorRefFactory;
 import akka.event.LoggingAdapter;
@@ -26,9 +26,9 @@ public class SatisfiabilityProblem extends ContextDependentExpressionProblem {
 	}
 
 	@Override
-	public ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> localStepSolver, Context localContext) {
-		if (localStepSolver instanceof ContextDependentExpressionProblemStepSolver) {
-			return new SatisfiabilityProblem(localContext, new DistributedSatisfiabilityOfSingleVariableStepSolver((ContextDependentExpressionProblemStepSolver) localStepSolver));
+	public ContextDependentExpressionProblem createSubProblem(StepSolver<Expression> localStepSolver, Context localContext) {
+		if (localStepSolver instanceof ExpressionStepSolver) {
+			return new SatisfiabilityProblem(localContext, new DistributedSatisfiabilityOfSingleVariableStepSolver((ExpressionStepSolver) localStepSolver));
 		}
 		else {
 			throw new IllegalArgumentException("Unexpected local step solver:"+localStepSolver);
@@ -36,7 +36,7 @@ public class SatisfiabilityProblem extends ContextDependentExpressionProblem {
 	}
 	
 	@Override
-	public ContextDependentProblemStepSolver<Expression> getLocalStepSolver() {
+	public StepSolver<Expression> getLocalStepSolver() {
 		// This object knows how to grant access to the local step solver (i.e. it wraps it).
 		return distributedSatisfiabilityOfSingleVariableStepSolver.getLocalWrappedContextDependentExpressionProblemStepSolver();
 	}

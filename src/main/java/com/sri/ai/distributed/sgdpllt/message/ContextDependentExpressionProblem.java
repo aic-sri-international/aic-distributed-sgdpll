@@ -5,7 +5,7 @@ import java.io.Serializable;
 import com.sri.ai.distributed.sgdpllt.dist.DistributedTheory;
 import com.sri.ai.expresso.api.Expression;
 import com.sri.ai.grinder.sgdpllt.api.Context;
-import com.sri.ai.grinder.sgdpllt.api.ContextDependentProblemStepSolver;
+import com.sri.ai.grinder.sgdpllt.api.StepSolver;
 
 import akka.actor.ActorRefFactory;
 import akka.event.LoggingAdapter;
@@ -28,8 +28,8 @@ public abstract class ContextDependentExpressionProblem implements Serializable 
 		((DistributedTheory)getLocalContext().getTheory()).setLocalActorInfo(actorRefFactory, actorLog);
 	}
 	
-	public abstract ContextDependentExpressionProblem createSubProblem(ContextDependentProblemStepSolver<Expression> stepSolver, Context localContext);	
-	public abstract ContextDependentProblemStepSolver<Expression> getLocalStepSolver();
+	public abstract ContextDependentExpressionProblem createSubProblem(StepSolver<Expression> stepSolver, Context localContext);	
+	public abstract StepSolver<Expression> getLocalStepSolver();
 	
 	public Context getLocalContext() {
 		return serializableContext.getLocalContext();
